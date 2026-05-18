@@ -1,0 +1,14 @@
+# MCP config contains auth tokens
+.mcp.json
+
+# Output artifacts (user-generated)
+output/*.md
+output/decisions/*.md
+output/decisions/.wip/*.json
+output/learn/*.md
+
+# Local settings (contain user-specific permissions)
+.claude/settings.local.json
+
+# OS
+.DS_Store
