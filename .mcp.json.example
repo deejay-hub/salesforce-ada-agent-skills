@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "salesforce-content": {
+      "type": "streamable-http",
+      "url": "http://localhost:3000/salesforce-content-mcp-server"
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
