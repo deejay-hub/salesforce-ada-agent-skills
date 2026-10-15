@@ -2,318 +2,316 @@
 
 > **This methodology is the ground truth for scoring architectural decisions in the decision pipeline.** All recommendations must follow this scoring rubric exactly.
 
+## Framework Alignment
+
+The decision score uses the five pillars of the [Salesforce Well-Architected Framework](https://architect.salesforce.com/docs/architect/well-architected/guide/framework.html). These pillars replace the legacy Trusted / Easy / Adaptable model. The framework is an architectural decision framework, and its goal is "the right quality profile," not maximizing every pillar.
+
+| Pillar | Framework definition | Pillar guide | Agentic variant |
+|--------|---------------------|--------------|-----------------|
+| **Trust** | Protect people, data, and systems through secure, compliant design | [trust](https://architect.salesforce.com/docs/architect/well-architected/guide/trust.html) | [agentic trust](https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-trust.html) |
+| **Reliability** | Build systems that continue working and recover gracefully when something fails | [reliability](https://architect.salesforce.com/docs/architect/well-architected/guide/reliability.html) | [agentic reliability](https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-reliability.html) |
+| **Operational Excellence** | Observe, automate, and continuously improve how systems run | [operational excellence](https://architect.salesforce.com/docs/architect/well-architected/guide/operational-excellence.html) | [agentic operational excellence](https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-operational-excellence.html) |
+| **Resource and Cost Optimization** | Invest intentionally to maximize long-term business value | [resource and cost optimization](https://architect.salesforce.com/docs/architect/well-architected/guide/resource-and-cost-optimization.html) | [agentic resource and cost optimization](https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-resource-and-cost-optimization.html) |
+| **Fairness** | Ensure systems are transparent, accessible, and equitable | [fairness](https://architect.salesforce.com/docs/architect/well-architected/guide/fairness.html) | [agentic fairness](https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-fairness.html) |
+
+The **Agentic Enterprise lens** is an overlay on these pillars, not a separate track. Whenever a decision involves agents, apply `knowledge/modifiers/agentic-enterprise-lens.md`. It adds agentic risk factors to each pillar without changing the weights.
+
 ## Pillars and Weights
 
-The decision score is a weighted sum of six pillars aligned with the Salesforce Well-Architected Framework. Each pillar receives a **confidence level** derived from risk assessment — lower risk means higher confidence in the option's fitness for that pillar.
+The decision score is a weighted sum of the five pillars. Each pillar receives a **confidence level** derived from the risk assessment: lower risk means higher confidence in the option's fitness for that pillar.
+
+The framework itself assigns no numeric weights. The weights below are this repo's convention. They follow the framework's guidance that Trust and Reliability are "non-negotiable foundations" for new designs.
 
 | Pillar | Weight | Focus Areas | Risk-to-Confidence Mapping |
 |--------|--------|-------------|---------------------------|
-| **Trust** | 20% | Data protection, authentication, authorization, encryption, compliance, least privilege, threat surface | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
-| **Reliability** | 20% | Fault tolerance, scaling, recovery, governor limit resilience, async patterns, error handling | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
-| **Operational Excellence** | 20% | Operations, observability, automation, maintainability, deployment velocity, team capability | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
-| **Resource Optimization** | 15% | Compute efficiency, query selectivity, heap/CPU usage, caching, latency, right-sizing | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
-| **Cost Optimization** | 15% | Licensing costs, development effort, operational overhead, API usage, time to value | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
-| **Fairness** | 10% | Accessibility, equitable access, bias avoidance, inclusive design, multi-persona consideration | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
+| **Trust** | 25% | Security, identity and access, privacy, compliance, secure development, incident response | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
+| **Reliability** | 25% | SLOs, high availability, scalability and capacity, fault tolerance, disaster recovery, health monitoring | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
+| **Operational Excellence** | 20% | Observability, DevOps, automation, incident management, continuous improvement, team capability | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
+| **Resource and Cost Optimization** | 20% | Governor limit efficiency, query selectivity, caching, code organization, packaging, data lifecycle, TCO, licensing and consumption, build vs. buy | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
+| **Fairness** | 10% | Accessibility, data quality and representation, fair automation, transparency, human oversight, consent | Low risk → High confidence (85), Med risk → Moderate confidence (55), High risk → Low confidence (25) |
 
 ### Total Decision Score Formula
 
 ```
-decisionScore = (trust × 0.20) + (reliability × 0.20) + (operational × 0.20) + 
-                (resource × 0.15) + (cost × 0.15) + (fairness × 0.10)
+decisionScore = (trust × 0.25) + (reliability × 0.25) + (operational × 0.20) +
+                (resourceAndCost × 0.20) + (fairness × 0.10)
 ```
 
-Where each pillar value is the confidence level (85, 55, or 25) derived from risk assessment.
+Each pillar value is the confidence level (85, 55, or 25) derived from the risk assessment.
 
-**Result range:** 0-100 (higher is better — higher confidence across pillars)
+**Result range:** 0-100. Higher is better, meaning higher confidence across pillars.
 
 **Decision bands:**
-- **80-100:** Strong fit — high confidence across most pillars
-- **60-79:** Acceptable fit — recommend with caveats or risk mitigation
-- **40-59:** Marginal fit — recommend alternative or hybrid approach
-- **0-39:** Poor fit — do not recommend; propose different architecture
+- **80-100:** Strong fit, with high confidence across most pillars
+- **60-79:** Acceptable fit. Recommend with caveats or risk mitigation.
+- **40-59:** Marginal fit. Recommend an alternative or hybrid approach.
+- **0-39:** Poor fit. Do not recommend; propose a different architecture.
+
+### Lens Weight Adjustments
+
+A pillar lens raises its pillar to 35%. The remaining pillars are scaled proportionally to keep the total at 100%. Each lens file lists its exact weights.
+
+When **multiple pillar lenses** are active:
+1. Set each lensed pillar to 35.
+2. Keep every other pillar at its base weight.
+3. Divide every weight by the new total, so the weights sum to 100%.
+
+For example, Trust and Reliability lenses together give 35 + 35 + 20 + 20 + 10 = 120. That normalizes to Trust 29.17%, Reliability 29.17%, Operational Excellence 16.67%, Resource and Cost Optimization 16.67%, Fairness 8.33%.
+
+The Agentic Enterprise lens and the concise format modifier do not change weights.
 
 ---
 
-## Pillar 1: Trust (20%)
+## Pillar 1: Trust (25%)
 
-**Definition:** How well does the solution protect data, enforce least privilege, and maintain compliance?
+**Definition:** How well does the solution apply security controls, govern identity and access, respect privacy, and satisfy compliance obligations under the Shared Responsibility Model?
 
 ### Scoring Criteria (0-100)
 
-| Confidence Level | Authentication | Authorization | Encryption | Compliance |
+| Confidence Level | Identity and Access | Data Protection | Integration Security | Compliance |
 |-------------|---------------|--------------|------------|------------|
-| **High confidence (85)** | MFA enforced, SSO with IdP, session management | CRUD/FLS enforced, sharing rules, least privilege | Shield Platform Encryption, TLS 1.2+ | GDPR, HIPAA, PCI-DSS controls |
-| **Moderate confidence (55)** | Password + security questions, IP restrictions | Basic profile permissions, some FLS gaps | Encryption at rest (standard) | Partial compliance controls |
-| **Low confidence (25)** | Password only, no MFA | System context (`without sharing`), no FLS | No encryption at rest | No compliance controls |
+| **High confidence (85)** | MFA and SSO, private OWDs, least-privilege permission sets, per-user identity propagation | Data classified (Public / Internal / Confidential / Restricted), Shield Platform Encryption for Restricted data | Named Credentials, External Client Apps, JWT Bearer or Web Server Flow with PKCE | Health Check 80%+, Event Monitoring, audit trail strategy |
+| **Moderate confidence (55)** | MFA enforced, broad profiles, some shared integration users | Standard encryption at rest, classification incomplete | Legacy Connected Apps with scoped OAuth | Partial controls, Setup Audit Trail only |
+| **Low confidence (25)** | No MFA, admin-level or shared service accounts | Restricted data unencrypted, no classification | Username-Password Flow, hardcoded secrets | No compliance controls |
 
 ### Risk Assessment
 
 | Risk Factor | Low Risk → High Confidence (85) | Med Risk → Moderate Confidence (55) | High Risk → Low Confidence (25) |
 |-------------|-------------------------|---------------------------|-------------------------|
-| **Data exposure** | All queries use `USER_MODE` or `WITH SECURITY_ENFORCED` | Some queries skip FLS checks | All queries in system context |
-| **Authentication** | MFA enforced, SSO with IdP (Okta, Azure AD) | Password + IP restrictions | Password only, no MFA |
-| **Sharing model** | Private with explicit sharing rules | Public Read/Write | Public Read/Write with `without sharing` code |
-| **Secrets management** | Named Credentials, External Credentials | Hardcoded in Custom Settings | Hardcoded in Apex/metadata |
-| **Audit trail** | Shield Event Monitoring, 10-year field history | Setup Audit Trail (6 months) | No audit trail |
+| **Data exposure** | Apex runs `with sharing` and queries use `WITH USER_MODE` or `Security.stripInaccessible()` | Some system-mode access, documented and justified | Undeclared or `without sharing` classes, no CRUD/FLS enforcement |
+| **Identity model** | Per-user authentication or OAuth 2.0 Token Exchange, MFA and SSO | Dedicated integration user per integration | Shared service account, Username-Password Flow |
+| **Sharing model** | Private OWD with explicit sharing, restriction rules where needed | Public Read Only | Public Read/Write (the framework calls permissive OWDs "the most common trust debt in mature orgs") |
+| **Secrets management** | Named Credentials and External Credentials | Secrets in protected Custom Metadata or Custom Settings | Secrets hardcoded in Apex or metadata |
+| **Audit and detection** | Event Monitoring streamed to a SIEM, Transaction Security policies | Setup Audit Trail (180 days) reviewed periodically | No audit trail |
 
 ### Example Scoring
 
 **High confidence (85):**
-- MFA enforced for all users
-- All Apex uses `with sharing` and `USER_MODE`
-- Shield Platform Encryption for PII fields
-- Named Credentials for external system auth
-- Event Monitoring logs streamed to SIEM
+- MFA and SSO enforced for all users
+- Apex uses `with sharing` and `WITH USER_MODE`
+- Shield Platform Encryption on Restricted fields
+- Named Credentials with an External Client App per integration
+- Event Monitoring logs streamed to a SIEM
 
 **Moderate confidence (55):**
-- Password + IP restrictions
-- Most Apex uses `with sharing`, some FLS gaps
+- MFA enforced, but profiles are broader than needed
+- Most Apex uses `with sharing`; a few documented system-mode paths
 - Standard encryption at rest
-- Custom Settings for external credentials
+- One integration user shared across two integrations
 
 **Low confidence (25):**
 - No MFA enforcement
-- Apex uses `without sharing`
-- No encryption at rest
-- Hardcoded credentials in code
+- Apex uses `without sharing` with no justification
+- Username-Password OAuth flow or hardcoded credentials
+- Public Read/Write OWD on sensitive objects
+
+> `WITH SECURITY_ENFORCED` was removed in API 67.0. Use `WITH USER_MODE` instead. [Source: https://architect.salesforce.com/docs/architect/well-architected/guide/trust.html]
 
 ---
 
-## Pillar 2: Reliability (20%)
+## Pillar 2: Reliability (25%)
 
-**Definition:** How well does the solution handle failures, scale with load, and recover from incidents?
+**Definition:** How well does the solution meet its SLOs, tolerate failure, scale with load, and recover from incidents?
 
 ### Scoring Criteria (0-100)
 
-| Confidence Level | Fault Tolerance | Scaling | Recovery | Governor Limit Resilience |
+| Confidence Level | Targets | Fault Tolerance | Scaling | Recovery |
 |-------------|----------------|---------|----------|--------------------------|
-| **High confidence (85)** | Graceful degradation, retry logic, circuit breakers | Handles 10x expected load | Automated failover, RTO <1 hour | Async patterns, bulk-safe, <50% of limits |
-| **Moderate confidence (55)** | Basic error handling, manual retry | Handles 2x expected load | Manual recovery, RTO <4 hours | Some bulk-safe patterns, 50-80% of limits |
-| **Low confidence (25)** | No error handling, crashes on failure | Only handles expected load | No recovery plan, RTO >24 hours | SOQL/DML in loops, >80% of limits |
+| **High confidence (85)** | SLOs defined per user journey, set looser than the platform SLA (leaving an error budget) | Graceful degradation tiers, circuit breakers, retry with backoff, fallbacks | Bulkified, async where needed, peak usage within the 70% governor-limit operational ceiling | RTO/RPO defined, tested backups, DR drills run |
+| **Moderate confidence (55)** | Informal availability expectations | Basic error handling, manual retry | Peak usage occasionally exceeds the 70% ceiling | RTO/RPO defined, but recovery is untested |
+| **Low confidence (25)** | No targets, or "five nines for everything" | No error handling, silent failures | SOQL/DML in loops, peak near limits | No recovery plan; backups are "an untested assumption" |
 
 ### Risk Assessment
 
 | Risk Factor | Low Risk → High Confidence (85) | Med Risk → Moderate Confidence (55) | High Risk → Low Confidence (25) |
 |-------------|-------------------------|---------------------------|-------------------------|
-| **Governor limits** | Uses <50% of limits (SOQL, DML, CPU) | Uses 50-80% of limits | Uses >80% of limits, frequent failures |
-| **Async patterns** | Queueable, Batch Apex, Platform Events | Future methods, scheduled flows | Synchronous only, no async fallback |
-| **Error handling** | Try/catch, fault connectors, DLQ | Basic try/catch, some error logging | No error handling, silent failures |
-| **Data volume** | Handles 10x expected load via bulkification | Handles 2x expected load | Only handles expected load |
-| **External dependencies** | Circuit breaker, fallback cache | Retry logic, timeout handling | No error handling for callouts |
+| **Governor limits** | Peak below the 70% operational ceiling | Peak 70-85% of a limit | Peak above 85%, or unbounded with volume |
+| **Async patterns** | Right tool per need: Batch Apex (volume), Queueable (sequence), Platform Events (decoupling) | Future methods or scheduled jobs without monitoring | Synchronous only, no async fallback |
+| **Error handling** | Fail fast, gracefully, informatively, and safely; dead-letter handling | Basic try/catch and logging | No error handling, silent failures |
+| **Data volume** | Partitioned (date, record type, owner); load-tested in a Full Copy sandbox | Tested only at expected volume | Untested at production volume, or data skew present |
+| **External dependencies** | Circuit breaker, timeouts, fallback (cache, default, queue for retry) | Retry with backoff and timeout handling | No timeout or retry; retries on 4xx errors other than 429 |
 
 ### Example Scoring
 
 **High confidence (85):**
 - All SOQL/DML operations are bulk-safe
-- Uses Queueable for async processing (200 SOQL limit)
+- Queueable for sequenced async work (200 SOQL queries per async transaction)
 - Platform Events for decoupled pub/sub
-- Circuit breaker for external callouts
-- Batch Apex for large data volumes (50M records)
+- Circuit breaker on external callouts
+- Batch Apex for large data volumes (up to 50M records via QueryLocator)
 
 **Moderate confidence (55):**
-- Most SOQL/DML is bulk-safe, some edge cases
-- Uses Future methods for async processing
+- Most SOQL/DML is bulk-safe, with some edge cases
+- Future methods for async processing
 - Basic retry logic for callouts
-- Handles 2x expected load
+- RTO/RPO documented but never drilled
 
 **Low confidence (25):**
 - SOQL/DML in loops
-- All processing is synchronous
+- All processing synchronous
 - No error handling for callouts
-- Fails with >200 records
+- Fails with more than 200 records
 
 ---
 
 ## Pillar 3: Operational Excellence (20%)
 
-**Definition:** How easy is the solution to operate, monitor, and evolve over time?
+**Definition:** How well can the solution be observed, deployed, automated, supported during incidents, and continuously improved?
 
 ### Scoring Criteria (0-100)
 
-| Confidence Level | Deployment | Observability | Automation | Maintainability |
+| Confidence Level | Observability | DevOps | Automation | Incident Management |
 |-------------|------------|---------------|------------|-----------------|
-| **High confidence (85)** | CI/CD with validation gates, rollback capability | Comprehensive logging, real-time alerting, dashboards | Fully automated (zero manual steps) | Self-documenting, modular, well-tested |
-| **Moderate confidence (55)** | Manual deploy with validation, limited rollback | Basic logging, reactive monitoring | Partially automated (some manual steps) | Documented, some coupling, partial test coverage |
-| **Low confidence (25)** | Ad-hoc deploy, no validation, no rollback | Minimal logging, no monitoring | Fully manual | Undocumented, tightly coupled, no tests |
+| **High confidence (85)** | Instrumented from v1; SLIs (availability, latency, success rate, throughput) with error budgets; actionable alerts | Source-driven (Salesforce DX), CI/CD with validation gates, test pyramid, rollback runbooks | Declarative-first, automated repetitive work, no manual steps | Severity tiers, on-call, blameless postmortems |
+| **Moderate confidence (55)** | Basic logging, reactive monitoring | Manual deploy with validation, limited rollback | Partially automated | Ad-hoc escalation, informal reviews |
+| **Low confidence (25)** | Observability retrofitted after problems | Ad-hoc changes in production, no tests | Fully manual | Tribal knowledge, no postmortems |
 
 ### Risk Assessment
 
 | Risk Factor | Low Risk → High Confidence (85) | Med Risk → Moderate Confidence (55) | High Risk → Low Confidence (25) |
 |-------------|-------------------------|---------------------------|-------------------------|
-| **Deployment complexity** | Metadata-only, declarative, packaged | Mix of clicks and code, multi-org | Manual scripts, org-specific |
-| **Monitoring visibility** | Event Monitoring, Shield audit, real-time alerts | Setup Audit Trail, periodic reviews | No audit trail, reactive only |
-| **Change velocity** | Deploy daily, automated tests | Deploy weekly, manual validation | Deploy monthly, no tests |
-| **Runbook completeness** | Automated runbooks, playbooks | Documented procedures | Tribal knowledge |
-| **Team capability** | Team has skills to build and maintain | Team can maintain with some upskilling | Team lacks skills, dependent on vendor/contractor |
+| **Deployment complexity** | Metadata in source control, packaged, feature flags for progressive release | Mix of clicks and code, some manual steps | Manual, org-specific changes; one big trigger |
+| **Monitoring visibility** | Event Monitoring, Scale Center, Proactive Monitoring, integration health monitored in both directions | Setup Audit Trail and periodic reviews | Reactive only |
+| **Change velocity** | DORA metrics tracked (deployment frequency, lead time, change failure rate, failed deployment recovery time) | Weekly deploys with manual validation | Infrequent deploys, no tests |
+| **Runbook completeness** | Operational Readiness Review passed, deployment and rollback runbooks | Documented procedures | Tribal knowledge |
+| **Team capability** | Team has the skills to build and maintain it; Center of Excellence in place | Team can maintain it with some upskilling | Team lacks the skills and depends on a vendor or contractor |
 
 ### Example Scoring
 
 **High confidence (85):**
 - CI/CD pipeline with scratch org validation
-- Event Monitoring logs streamed to SIEM
-- Automated deployment via Salesforce CLI
-- Comprehensive test suite (85%+ coverage)
-- Runbooks for incident response
+- Event Monitoring logs streamed to a SIEM
+- Automated deployment via the Salesforce CLI
+- Test pyramid with unit, integration, and end-to-end tests
+- Runbooks and blameless postmortems for incidents
 
 **Moderate confidence (55):**
 - Manual deployment with validation
 - Setup Audit Trail reviewed monthly
-- Some automated tests (60% coverage)
+- Some automated tests
 - Basic documentation
 
 **Low confidence (25):**
 - Ad-hoc changes in production
-- No audit trail or monitoring
+- No monitoring
+- Legacy Process Builder automation (past end of support)
 - No tests or documentation
 
 ---
 
-## Pillar 4: Resource Optimization (15%)
+## Pillar 4: Resource and Cost Optimization (20%)
 
-**Definition:** How efficiently does the solution use platform resources and deliver fast response times?
+**Definition:** How much value does the solution deliver per unit of cost? The framework calls resource optimization "the mechanism" and cost optimization "the outcome."
 
 ### Scoring Criteria (0-100)
 
-| Confidence Level | Latency | Compute Efficiency | Caching | Right-Sizing |
+| Confidence Level | Platform Efficiency | Total Cost of Ownership | Licensing and Consumption | Code and Data Organization |
 |-------------|---------|-------------------|---------|--------------|
-| **High confidence (85)** | <1s response, <2s for complex queries | <50% heap, <50% CPU | Platform Cache, CDN, efficient patterns | Uses lowest edition and fewest add-ons needed |
-| **Moderate confidence (55)** | 1-3s response, 3-5s for complex queries | 50-80% heap, 50-80% CPU | Custom object cache, no CDN | Slightly over-provisioned |
-| **Low confidence (25)** | >3s response, >5s for complex queries | >80% heap, >80% CPU, timeouts | No caching | Significantly over-provisioned |
+| **High confidence (85)** | Selective queries, bulkified, caching where justified, under 50% heap and CPU | 3-5 year TCO modeled (direct and indirect costs), spend aligned to business value | Right-sized licenses, consumption monitored with 70%/85% budget alerts | Trigger handler, service, and selector layers; packaged; archival strategy |
+| **Moderate confidence (55)** | Some non-selective queries, 50-80% heap and CPU | Implementation cost estimated, run cost not modeled | 1-2 add-ons, consumption not monitored | Partial layering, no archival plan |
+| **Low confidence (25)** | Full table scans, above 80% heap and CPU, polling | No TCO; hidden technical-debt interest | Over-licensing, idle sandboxes, unbounded consumption | Monolithic code, data skew (10K+ child records per parent) |
 
 ### Risk Assessment
 
 | Risk Factor | Low Risk → High Confidence (85) | Med Risk → Moderate Confidence (55) | High Risk → Low Confidence (25) |
 |-------------|-------------------------|---------------------------|-------------------------|
-| **Query selectivity** | Indexed filters in WHERE, <10K rows | Some non-selective queries, <50K rows | Full table scans, >50K rows |
-| **Heap usage** | <3 MB (sync), <6 MB (async) | 3-6 MB (sync), 6-12 MB (async) | >6 MB (sync), >12 MB (async) |
-| **CPU time** | <5s (sync), <30s (async) | 5-10s (sync), 30-60s (async) | >10s (sync), >60s (async) |
-| **Infrastructure** | Native Salesforce (Flow, LWC) | Some external apps or APIs | Heavy external infrastructure (Heroku, AWS, VMs) |
-| **Async patterns** | Queueable, Batch Apex, Platform Events | Some Future methods | All synchronous processing |
+| **Query selectivity** | Indexed filters, selective queries | Some non-selective queries on moderate volumes | Full table scans on large objects |
+| **Heap and CPU** | Under 50% of sync/async limits | 50-80% of limits | Above 80%, or timeouts |
+| **Integration efficiency** | Events or CDC, Composite API, Bulk API 2.0 | REST calls with batching | Chatty integrations or scheduled polling |
+| **License and consumption cost** | No add-ons, or consumption with budget alerts | 1-2 add-ons (for example Shield or Experience Cloud) | 3+ add-ons, or unmetered consumption |
+| **Development effort and time to value** | Declarative, MVP in under 2 weeks | Mix of clicks and code, MVP in 2-4 weeks | Heavy custom code, MVP in more than 4 weeks |
+| **Build vs. buy** | Assessed on differentiation, time to value, organizational capability, and exit cost | Assessed on cost only | Not assessed |
 
 ### Example Scoring
 
 **High confidence (85):**
-- SOQL queries use indexed fields (AccountId, OwnerId)
-- LWC uses lazy loading for large datasets
-- Platform Cache for frequently accessed data
-- Heap usage <3 MB, CPU time <5s
-- Native Salesforce only, Enterprise edition
+- SOQL queries use indexed fields
+- Platform Cache for frequently read configuration
+- No add-ons required
+- Declarative solution with an MVP in under 2 weeks
+- License utilization dashboard in place
 
 **Moderate confidence (55):**
-- Some non-selective queries (Industry, CreatedDate)
-- LWC loads in 1-3s
-- Custom object cache for config data
-- Heap usage 3-6 MB, CPU time 5-10s
+- Some non-selective queries
+- Shield add-on required for encryption
+- Mix of flows and Apex
+- Weekly batch job with some manual oversight
 
 **Low confidence (25):**
-- Full table scans (LIKE '%...', no WHERE clause)
-- LWC blocks on slow Apex calls
-- No caching
-- Heavy external infrastructure, over-provisioned
+- Full table scans, no caching
+- Multiple add-ons (for example MuleSoft, Data 360, and Shield) with no consumption monitoring
+- Heavy Apex/LWC with an MVP in more than 6 weeks
+- Scheduled polling that usually finds no work
 
 ---
 
-## Pillar 5: Cost Optimization (15%)
+## Pillar 5: Fairness (10%)
 
-**Definition:** How cost-effective is the solution in terms of licensing, development effort, and operational overhead?
-
-### Scoring Criteria (0-100)
-
-| Confidence Level | Licensing Costs | Development Effort | Operational Overhead | API Usage |
-|-------------|----------------|-------------------|---------------------|-----------|
-| **High confidence (85)** | No add-ons, standard edition | Clicks-only, <1 week | Managed services, zero maintenance | <50% of daily limit, Bulk API |
-| **Moderate confidence (55)** | Some add-ons, Enterprise edition | Mix of clicks and code, 1-4 weeks | Some manual operations | 50-80% of daily limit, REST API |
-| **Low confidence (25)** | Many add-ons, Unlimited edition | Heavy Apex/LWC, >4 weeks | High manual overhead | >80% of daily limit, polling |
-
-### Risk Assessment
-
-| Risk Factor | Low Risk → High Confidence (85) | Med Risk → Moderate Confidence (55) | High Risk → Low Confidence (25) |
-|-------------|-------------------------|---------------------------|-------------------------|
-| **License cost** | No add-ons (Sales/Service Cloud only) | 1-2 add-ons (Shield, Experience Cloud) | 3+ add-ons (MuleSoft, Data 360, Shield) |
-| **Edition requirement** | Professional or Enterprise | Enterprise or Unlimited | Unlimited or custom SKU |
-| **Development effort** | Clicks-only (flows, declarative) | Mix of clicks and code (<1K LOC) | Heavy code (>5K LOC, complex logic) |
-| **Operational overhead** | Managed services (Flow, declarative) | Some manual operations (Batch Apex) | High manual operations (cron jobs, scripts) |
-| **Time to value** | Deploy MVP in <2 weeks | Deploy MVP in 2-4 weeks | Deploy MVP in >4 weeks |
-
-### Example Scoring
-
-**High confidence (85):**
-- No add-ons required (Sales Cloud only)
-- Professional or Enterprise edition
-- Clicks-only solution (flows, validation rules)
-- Zero operational overhead
-- MVP delivered in <2 weeks
-
-**Moderate confidence (55):**
-- Shield add-on for encryption
-- Enterprise edition required
-- Mix of flows and Apex (500 LOC)
-- Some manual operations (weekly batch job)
-- MVP in 3 weeks
-
-**Low confidence (25):**
-- MuleSoft, Data 360, Shield add-ons
-- Unlimited edition required
-- Heavy Apex/LWC (10K LOC)
-- High manual overhead (daily scripts)
-- MVP in >6 weeks
-
----
-
-## Pillar 6: Fairness (10%)
-
-**Definition:** How well does the solution provide equitable access, avoid bias, and consider diverse user needs?
+**Definition:** How well does the solution deliver inclusive design, fair automation and AI, and governance that keeps outcomes transparent, accessible, and equitable?
 
 ### Scoring Criteria (0-100)
 
-| Confidence Level | Accessibility | Equitable Access | Bias Avoidance | Inclusive Design |
+| Confidence Level | Accessibility | Fair Automation | Transparency | User Agency |
 |-------------|---------------|-----------------|----------------|-----------------|
-| **High confidence (85)** | WCAG 2.1 AA compliant, screen reader tested | All user personas served equally | AI/automation outputs reviewed for bias | Multi-language, multi-device, multi-persona |
-| **Moderate confidence (55)** | Basic accessibility (standard components) | Most personas served, some gaps | Some bias review, not systematic | Single language, desktop-focused |
-| **Low confidence (25)** | No accessibility consideration | Some personas excluded or disadvantaged | No bias review, potential for unfair outcomes | Single persona assumption |
+| **High confidence (85)** | WCAG 2.2 AA (recommended for new work); tested with assistive technology; sa11y in CI | Assignment, routing, and territory rules audited for outcomes | Explanations layered by audience, audit trail of decisions | Granular consent per use case, human handoff available |
+| **Moderate confidence (55)** | Standard SLDS components without explicit testing (2.1 AA is the minimum for custom components) | Rules exist but have not been reviewed for bias | Logic documented but not surfaced to users | Blanket consent |
+| **Low confidence (25)** | Custom UI with no accessibility consideration | Opaque logic that may disadvantage groups | No explanation or audit trail | No opt-out or human alternative |
 
 ### Risk Assessment
 
 | Risk Factor | Low Risk → High Confidence (85) | Med Risk → Moderate Confidence (55) | High Risk → Low Confidence (25) |
 |-------------|-------------------------|---------------------------|-------------------------|
-| **Accessibility** | Standard LWC (inherits SLDS accessibility), tested with assistive tech | Standard components without explicit testing | Custom UI without accessibility consideration |
-| **Persona coverage** | All user roles considered in design | Primary personas covered, edge cases missed | Solution designed for one persona, others excluded |
-| **Automation bias** | Assignment/routing rules reviewed for fairness, auditable criteria | Rules exist but not reviewed for bias | Opaque logic that may disadvantage groups |
-| **Data equity** | Reporting and dashboards available to all relevant roles | Some roles lack visibility into data affecting them | Data access concentrated, decisions opaque |
+| **Accessibility** | Standard LWC (inherits SLDS accessibility), tested with assistive technology | Standard components, no explicit testing | Custom UI with no accessibility consideration |
+| **Data representation** | Required fields justified; name and address fields support global formats | Some Western-centric assumptions | Latin-only validation, required fields that exclude groups |
+| **Automation bias** | Assignment and routing rules reviewed and auditable | Rules not reviewed for bias | Opaque logic, or AI routing with no bias review |
+| **Human oversight** | Review before high-stakes actions; contestable decisions | Overrides possible but not tracked | No human review of consequential decisions |
+| **Data access equity** | OWD and FLS applied for non-discrimination; reporting available to the affected roles | Some roles lack visibility into data that affects them | Data access concentrated and decisions opaque |
 
 ### Example Scoring
 
 **High confidence (85):**
-- Standard LWC components (SLDS accessibility built-in)
-- All user personas considered in flow design
+- Standard LWC components with assistive technology testing
+- All user personas considered in the flow design
 - Assignment rules use transparent, auditable criteria
 - Multi-language support via custom labels
-- Dashboards available to all affected roles
 
 **Moderate confidence (55):**
 - Standard components without explicit accessibility testing
-- Primary user personas covered, field reps underserved
-- Territory assignment rules not reviewed for geographic bias
-- English-only, desktop-optimised
+- Primary personas covered; field reps underserved
+- Territory rules not reviewed for geographic bias
 
 **Low confidence (25):**
-- Custom UI without accessibility consideration
-- Solution designed for admins only, end users excluded
+- Custom UI with no accessibility consideration
 - AI-driven routing with no bias review
 - No visibility into how decisions affect different groups
 
 ---
 
+## Cross-Pillar Trade-offs
+
+The framework names specific tensions between pillars. When the winning option trades one pillar against another, the Recommendation Rationale must name the tension it resolves:
+
+| Tension | Framework guidance |
+|---------|-------------------|
+| Trust vs. Resource and Cost Optimization | Encryption and logging consume resources and cost. Size controls to data classification. |
+| Reliability vs. Resource and Cost Optimization | Let SLOs set the level of reliability investment. |
+| Operational Excellence vs. Speed | Find the "minimum viable observability" for the risk profile. |
+| Fairness vs. Autonomy | Human-in-the-Loop patterns set the balance. |
+
+[Source: https://architect.salesforce.com/docs/architect/well-architected/guide/framework.html]
+
+---
+
 ## Consistency Rules
 
-1. **Highest decision score MUST be the recommendation.** The option with the top decision score is always the recommended choice. If the narrative says "Option A is recommended" but Option B has a higher decision score, the data is wrong — fix it.
+1. **Highest decision score MUST be the recommendation.** The option with the top decision score is always the recommended choice. If the narrative says "Option A is recommended" but Option B has a higher decision score, the data is wrong. Fix it.
 
 2. **Risk-to-confidence mapping is mandatory.** Every pillar uses fixed confidence values: Low risk = 85, Med risk = 55, High risk = 25. No arbitrary values.
 
 3. **Tie-breaking rules:**
-   - Prefer fewer "high" risks (a 75 with 1 high risk beats a 75 with 2 high risks)
-   - Weight criteria by priority (Trust > Reliability > Operational Excellence > Resource > Cost > Fairness)
-   - Consider development effort as secondary (faster to deploy beats slower if scores are tied)
+   - Prefer fewer "high" risks (a 75 with 1 high risk beats a 75 with 2 high risks).
+   - Weight criteria by priority: Trust > Reliability > Operational Excellence > Resource and Cost Optimization > Fairness.
+   - Consider development effort as secondary: faster to deploy beats slower if scores are tied.
 
 4. **Data overrides narrative.** If the scoring table shows Option A at 82 and Option B at 78, but the recommendation text says "Option B is recommended," the recommendation is WRONG. Fix it to match the data.
 
@@ -329,30 +327,28 @@ Where each pillar value is the confidence level (85, 55, or 25) derived from ris
 
 | Pillar | Confidence | Governing Criterion | Reasoning |
 |--------|------------|--------------------:|-----------|
-| **Trust** (20%) | 85 | Data Exposure = Low risk | Runs in user context, respects sharing rules |
-| **Reliability** (20%) | 55 | Error Handling = Med risk | Bulk-safe by default, but limited to fault connectors for error handling |
+| **Trust** (25%) | 85 | Data Exposure = Low risk | Runs in user context and respects sharing rules |
+| **Reliability** (25%) | 55 | Error Handling = Med risk | Bulk-safe by default, but error handling is limited to fault paths |
 | **Operational Excellence** (20%) | 85 | Deployment Complexity = Low risk | Declarative, no code, easy to change |
-| **Resource Optimization** (15%) | 55 | Caching = Med risk | Fast for simple logic but no caching for repeated territory lookups |
-| **Cost Optimization** (15%) | 85 | License Cost = Low risk | Zero dev cost, no Apex licenses needed |
-| **Fairness** (10%) | 85 | Persona Coverage = Low risk | Transparent assignment rules, auditable by non-developers |
-| **Decision Score** | **74.5** | | (85×0.20) + (55×0.20) + (85×0.20) + (55×0.15) + (85×0.15) + (85×0.10) |
+| **Resource and Cost Optimization** (20%) | 55 | Caching = Med risk | Zero development cost, but no caching for repeated territory lookups (governs as the highest-risk criterion) |
+| **Fairness** (10%) | 85 | Automation Bias = Low risk | Transparent assignment rules, auditable by non-developers |
+| **Decision Score** | **71.5** | | (85×0.25) + (55×0.25) + (85×0.20) + (55×0.20) + (85×0.10) |
 
 ### Option B: Apex Trigger
 
 | Pillar | Confidence | Governing Criterion | Reasoning |
 |--------|------------|--------------------:|-----------|
-| **Trust** (20%) | 85 | Data Exposure = Low risk | Uses `with sharing` and `USER_MODE` |
-| **Reliability** (20%) | 85 | Governor Limits = Low risk | Bulk-safe, error handling, unit tests |
-| **Operational Excellence** (20%) | 55 | Deployment Complexity = Med risk | Requires tests, deploy pipeline, code reviews |
-| **Resource Optimization** (15%) | 85 | Heap Usage = Low risk | Can cache territory lookups in memory |
-| **Cost Optimization** (15%) | 55 | Development Effort = Med risk | Requires developer time (1 week) and ongoing maintenance |
-| **Fairness** (10%) | 55 | Data Equity = Med risk | Logic is code-reviewable but less transparent to non-developers |
-| **Decision Score** | **71.5** | | (85×0.20) + (85×0.20) + (55×0.20) + (85×0.15) + (55×0.15) + (55×0.10) |
+| **Trust** (25%) | 85 | Data Exposure = Low risk | Uses `with sharing` and `WITH USER_MODE` |
+| **Reliability** (25%) | 85 | Governor Limits = Low risk | Bulk-safe, error handling, unit tests |
+| **Operational Excellence** (20%) | 55 | Deployment Complexity = Med risk | Requires tests, a deploy pipeline, and code reviews |
+| **Resource and Cost Optimization** (20%) | 55 | Development Effort = Med risk | Can cache lookups, but requires developer time (1 week) and ongoing maintenance |
+| **Fairness** (10%) | 55 | Data Access Equity = Med risk | Logic is code-reviewable but less transparent to non-developers |
+| **Decision Score** | **70.0** | | (85×0.25) + (85×0.25) + (55×0.20) + (55×0.20) + (55×0.10) |
 
-**Recommendation:** **Option A: Record-Triggered Flow** (decision score 74.5 > 71.5)
+**Recommendation:** **Option A: Record-Triggered Flow** (decision score 71.5 > 70.0)
 
-**Rationale:** Flow wins primarily on Cost Optimization (85 vs 55) due to zero development effort and no Apex dependency. Apex wins on Reliability (85 vs 55) due to comprehensive error handling beyond fault connectors. The 3-point gap is driven by Flow's cost and fairness advantages outweighing Apex's reliability edge.
+**Rationale:** Flow wins on Operational Excellence (85 vs 55) because it is declarative and easy to change, and on Fairness (85 vs 55) because its assignment logic is auditable by non-developers. Apex wins on Reliability (85 vs 55) through comprehensive error handling, but that 25%-weighted advantage does not offset Flow's two wins. This resolves the Operational Excellence vs. Speed tension in favor of the simpler, declarative design at this volume.
 
 ---
 
-**Last updated:** 2026-05-18 (aligned with Salesforce Well-Architected Framework)
+**Last updated:** 2026-10-15 (aligned with the five-pillar Salesforce Well-Architected Framework and the Agentic Enterprise lens)

@@ -1,6 +1,28 @@
 # Fairness Lens
 
-This modifier applies an equity-first perspective to all architecture decisions, prioritizing multi-persona coverage, accessibility, equitable data access, bias detection, inclusive design, and transparency.
+This modifier applies an equity-first perspective to all architecture decisions, prioritizing multi-persona coverage, accessibility, representational data quality, equitable data access, bias detection, transparency, user agency, and human oversight.
+
+## Framework Alignment
+
+Aligned with the Salesforce Well-Architected **Fairness** pillar: "Ensure systems are transparent, accessible, and equitable."
+
+- Pillar: https://architect.salesforce.com/docs/architect/well-architected/guide/fairness.html
+- Agentic variant: https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-fairness.html
+
+**Fairness dimensions:**
+1. "Inclusive design" — accessible LWC, Visualforce, and Experience Cloud
+2. "AI fairness practices" — bias detection, diverse training data, ongoing monitoring
+3. "Governance" — processes and controls that sustain fairness over time
+
+**Guiding principles:**
+- "Design for Lightning accessibility patterns."
+- "Reduce and monitor bias with the right tools for each model type."
+- "Leverage Shield Platform Encryption for data protection controls."
+- "Design review workflows for high-stakes predictions."
+- "Apply Organization-Wide Defaults (OWD) and Field-Level Security (FLS) for non-discrimination."
+- "Enable user agency through platform consent."
+
+**Review areas** (use these as the checklist structure): Data Quality and Representational Fairness, Accessibility and Inclusive Design, Fairness in Salesforce Automation, AI Fairness and Bias Detection, Transparency and Auditability, Human Oversight with Salesforce Automation, Non-Discrimination with Data Access Controls, User Agency and Consent, Ethical AI Governance.
 
 ## Pillar Weight Adjustment
 
@@ -8,11 +30,10 @@ When the Fairness lens is active:
 
 - **Fairness pillar weight:** 35% (increased from 10%)
 - **Remaining pillars:** scaled proportionally to maintain 100% total
-  - Trust: 14.44% (down from 20%)
-  - Reliability: 14.44% (down from 20%)
+  - Trust: 18.06% (down from 25%)
+  - Reliability: 18.06% (down from 25%)
   - Operational Excellence: 14.44% (down from 20%)
-  - Resource Optimization: 10.83% (down from 15%)
-  - Cost Optimization: 10.83% (down from 15%)
+  - Resource and Cost Optimization: 14.44% (down from 20%)
 
 ## Analysis Requirements
 
@@ -45,7 +66,19 @@ For every architecture decision, assess whether all user personas are served equ
    - Can users with varying technical skills use this? (complexity, training)
    - Can users on different devices use this? (desktop, mobile, tablet)
 
-### Accessibility Assessment (WCAG 2.1 AA Compliance)
+### Data Quality and Representational Fairness
+
+Data models encode assumptions about who users and customers are. For every data model change:
+
+1. **Required fields** — "Review required fields for data availability." and "Audit business justifications for required fields." A required SSN, email, or street address excludes people who don't have one.
+2. **Name fields** — Western First/Last name structures and Latin-only validation exclude single names, patronymics, and non-Latin scripts.
+3. **Address validation** — Strict validation fails for rural, informal, or international addresses.
+4. **Communication channels** — Single-channel designs (email only or phone only) exclude segments of the population.
+5. **Demographic data and third-party enrichment** — Collect demographic data only with a documented purpose; review enrichment sources for coverage gaps across groups.
+
+### Accessibility Assessment (WCAG 2.2 AA)
+
+Standard SLDS components provide built-in accessibility. Custom components must explicitly meet WCAG 2.1 AA at minimum; target WCAG 2.2 AA for new work.
 
 For every UI component, evaluate accessibility:
 
@@ -74,11 +107,21 @@ For every UI component, evaluate accessibility:
 
 5. **Salesforce-Specific Accessibility Checks**
    - Lightning components use SLDS (Salesforce Lightning Design System) — built-in accessibility
-   - LWC: Use `lightning-input`, `lightning-button`, not custom HTML inputs
-   - Apex: Screen reader can't parse server-side logic, but ensure UI output is accessible
-   - Flow: Screen elements have labels, help text, error messages
+   - LWC: Use base components (`lightning-input`, `lightning-button`). In custom components, "Use semantic HTML in custom Lightning Web Components." and "Implement ARIA in custom components."
+   - Placeholder text is never the only label
+   - Keyboard: "Use logical focus order in Lightning pages.", "Use visible focus indicators to meet contrast requirements." (no `outline: none` without a replacement), "Use keyboard-trap mitigations in modals and overlays.", and "Use shortcut keys without conflicts." (no single-character global shortcuts)
+   - Flow: Screen elements have labels, help text, error messages; "Use focus management in Lightning flows."
+   - Experience Cloud: accessible templates, WCAG-compliant theming, keyboard-navigable menus, accessible forms, alternative text for images and icons
 
-### Data Access Equity
+6. **Accessibility testing in CI/CD**
+   - "Use sa11y for Lightning Web Component accessibility testing."
+   - "Use Lighthouse CI for Experience Cloud."
+   - "Use the Accessibility Agent, available through the Salesforce DX MCP package."
+   - Automated checks are not sufficient on their own — also test with assistive technology (JAWS, NVDA, VoiceOver)
+
+### Data Access Equity and Non-Discrimination
+
+The framework treats data access controls as a non-discrimination mechanism: "Enable restrictive OWD as the default.", "Apply Field-Level Security for sensitive attributes.", "Design assignment and sharing rules for equitable outcomes.", and "Provide permission sets for temporary access." Audit with Shield Event Monitoring (access to sensitive data), sharing rule distribution reports, and CRUD/FLS violation reviews.
 
 For every data model and reporting strategy:
 
@@ -102,9 +145,19 @@ For every data model and reporting strategy:
    - Example: Service agents can't see Account revenue; needed for upsell routing
    - Mitigation: Grant read access, keep edit restricted
 
-### Bias Detection in Automation
+### Fairness in Salesforce Automation
 
-For every automated decision (assignment rules, scoring models, AI predictions):
+Deterministic automation is not automatically objective. Review:
+
+- **Assignment and routing** — "Audit assignment rule outcomes regularly." and "Review omni-channel skill-based routing."
+- **Flows** — "Review Flow decisions with fairness in mind."
+- **Validation rules** — "Test validation rules using diverse data."
+- **Territories** — "Analyze territory demographics before finalizing designs."
+- **High-stakes automation** — "Review high-stakes automation through an ethical lens." and keep the logic transparent.
+
+### Bias Detection in AI and Automation
+
+For every automated decision (assignment rules, scoring models, AI predictions). Detection practices: "Audit Salesforce CRM data before training.", "Calculate fairness metrics across demographic groups.", "Capture predictive-model decision data for bias detection.", "Detect proxy features in predictive models." Mitigation practices: "Balance data before model training.", "Remove proxies in feature engineering.", "Adjust thresholds during post-processing.", "Retrain models periodically using updated data." Note that per-group threshold adjustment is prohibited in employment decisions.
 
 1. **Input Data Bias**
    - Training data: Does historical data reflect biased human decisions?
@@ -125,6 +178,10 @@ For every automated decision (assignment rules, scoring models, AI predictions):
    - Explainability: Can users see why an automated decision was made?
    - Example: "This lead was scored 85/100 because: industry match (30), company size (25), engagement (30)"
    - Mitigation: Add "Show Why" button that displays decision factors
+
+5. **Proxy features**
+   - Zip code, name patterns, communication timing, device type, and territory can act as proxies for protected traits
+   - Mitigation: Detect and remove proxies during feature engineering
 
 ### Inclusive Design Review
 
@@ -170,6 +227,43 @@ For every automated process, ensure auditability:
    - Debug logs: Capture automation execution for troubleshooting
    - Reporting: "Automation Health" dashboard (error rates, processing times)
 
+4. **Explainability and audit for AI**
+   - "Surface Einstein Discovery explanations at decision points.", "Layer explanations for different audiences.", "Communicate confidence appropriately." (plain-language confidence, not raw probability scores)
+   - "Use the Field Audit Trail for long-term retention.", "Use Event Monitoring for Agentforce interactions.", "Audit Agentforce conversations with the Einstein Trust Layer."
+   - Regulatory drivers: EU AI Act transparency requirements, GDPR right to explanation, algorithmic accountability laws
+
+### Human Oversight
+
+For any automation or AI that makes consequential decisions (employment, credit, healthcare, legal rights, housing), require human review before execution. For confidence-scored decisions, the agentic Fairness guidance uses these bands (calibrate against production outcomes):
+
+| Confidence | Behavior |
+|------------|----------|
+| High (>90%) | Proceed autonomously |
+| Moderate (70-90%) | Human reviews before action |
+| Low (<70%) | Defer to a human |
+
+Name accountable roles by person, not title: model owner, decision owner, appeal authority, audit authority. Escalation must route to a queue that actually has capacity.
+
+### User Agency and Consent
+
+- "Enable granular consent per AI use case." — blanket AI consent is a finding
+- "Use Data 360 consent for personalization." and "Enable Marketing Cloud consent integration."
+- "Provide accessible opt-outs in profile settings." and "Provide persistent preference options across channels."
+- Query consent (for example, in Flow) before AI affects a user; new capabilities require new consent
+
+### Ethical AI Governance
+
+- "Provide model documentation." and "Enable Pre-deployment fairness gates." — a fairness gate carries the same authority as security review
+- Define the review board's composition, the triggers that require ethics board approval, and who has the authority to block deployments (advisory-only reviews are a finding)
+- "Create CRM Analytics fairness dashboards.", "Schedule fairness audits.", and "Implement incident response for fairness failures."
+- Bias detection is continuous, not a one-time pre-launch check
+
+### Agentic Fairness (Brief)
+When the decision involves agents, apply these minimums and also activate `knowledge/modifiers/agentic-enterprise-lens.md` for full depth:
+- Bot disclosure is prominent and continuous, with a persistent "Connect to Human Agent" option and no service penalty for choosing a human.
+- Users can contest agent decisions; an appeal authority can reverse them, supported by historical reconstruction (model version, inputs, configuration state).
+- Measure fairness at each stage of a multi-agent chain, not only on the final outcome; agreement between agents does not prove the absence of shared bias.
+
 ## Output Enhancements
 
 ### Add "Fairness Considerations" Section to Every Output
@@ -177,11 +271,13 @@ For every automated process, ensure auditability:
 Every response must include a dedicated section covering:
 
 - Multi-persona coverage (which personas served, which excluded, why)
-- Accessibility compliance (WCAG 2.1 AA checklist, assistive tech support)
-- Data access equity (OWD, sharing rules, FLS, reporting visibility)
-- Bias detection (input data, algorithm, output, mitigation)
+- Representational data quality (required fields, name and address handling, channels)
+- Accessibility compliance (WCAG 2.2 AA target, 2.1 AA minimum; sa11y/Lighthouse CI; assistive tech testing)
+- Data access equity and non-discrimination (OWD, sharing rules, FLS, reporting visibility)
+- Bias detection (input data, algorithm, proxies, output, mitigation)
 - Inclusive design (language, device, cognitive load, cultural sensitivity)
-- Transparency (decision logging, user-facing explanations, audit trail)
+- Transparency and human oversight (decision logging, explanations, HITL thresholds, contestability)
+- User agency and consent (per-use-case consent, opt-outs)
 
 ### Risk Assessment Prioritization
 
@@ -205,6 +301,7 @@ When comparing options, apply a fairness bias:
 - Favor inclusive patterns over exclusive (accessible to all personas)
 - Favor transparent over opaque (users understand automated decisions)
 - Favor equitable over equal (meet different needs, not identical features)
+- Name the framework trade-off explicitly: Fairness vs. Autonomy. Fairness enforcement (HITL review) slows agent throughput; Human-in-the-Loop patterns set the balance.
 - Call out fairness shortcuts: "This approach excludes [persona]. Acceptable only if [that persona does not need this feature]."
 
 ## Decision Criteria Adjustments
@@ -221,6 +318,11 @@ The following patterns are automatically flagged as high-risk under the fairness
 6. **Desktop-only UI in mobile-first scenario** — field workers cannot access
 7. **No error messages for validation failures** — users don't know what they did wrong
 8. **No alternative for mouse-only interactions** — keyboard users cannot complete task
+9. **Required fields or validation that exclude valid identities** — Western-only name format, Latin-only characters, strict address validation, mandatory SSN or email
+10. **Blanket AI consent** — instead of granular, per-use-case consent
+11. **Consequential AI decisions without human review** — employment, credit, healthcare, legal rights, housing
+12. **Raw probability scores shown to end users** — instead of plain-language confidence
+13. **Advisory-only ethics review** — no authority to block deployment
 
 ### Favor Fairness-Optimized Options
 
@@ -232,6 +334,8 @@ When multiple options exist, prefer:
 - Multi-language support over English-only (Translation Workbench)
 - Self-service over admin intervention (empower users)
 - Transparent scoring over black-box AI (explainable decisions)
+- Granular, revocable consent over blanket consent
+- Human review at decision points for high-stakes outcomes over full autonomy
 - Universal design over persona-specific hacks (one solution serves all)
 
 ## Example Output (Fairness Lens Applied)
@@ -257,8 +361,9 @@ When multiple options exist, prefer:
 > - [ ] Use `lightning-card` components (ARIA landmarks built-in)
 > - [ ] Chart alt text: `<c-chart title="Revenue by Rep" description="Bar chart showing..."/>`
 > - [ ] Keyboard navigation: Tab order logical (top to bottom, left to right)
-> - [ ] Color contrast: SLDS tokens ensure WCAG 2.1 AA (no custom colors)
-> - [ ] Screen reader: Test with VoiceOver; charts must announce data points
+> - [ ] Color contrast: SLDS tokens support WCAG AA contrast (no custom colors)
+> - [ ] Screen reader: Test with VoiceOver and NVDA; charts must announce data points
+> - [ ] CI: sa11y tests on any custom LWC used on the dashboard page
 >
 > **Data Access Equity:**
 > - **Current:** Only managers see team data (sales reps cannot self-assess)
@@ -268,7 +373,7 @@ When multiple options exist, prefer:
 > **Bias Detection:**
 > - **Risk:** Dashboard shows "Top Performers" → social comparison pressure
 > - **Mitigation:** Make "leaderboard" component optional (managers can hide)
-> - **Alternative:** Show improvement trends ("You closed 15% more deals this quarter")
+> - **Alternative:** Show improvement trends (illustrative: "You closed 15% more deals this quarter")
 >
 > **Inclusive Design:**
 > - **Language:** Use Translation Workbench to translate labels (ES, FR, DE)
@@ -299,10 +404,15 @@ When multiple options exist, prefer:
 When Fairness lens is active, verify every response includes:
 
 - [ ] Multi-persona coverage analysis (which personas served, which excluded, justification)
-- [ ] Accessibility assessment (WCAG 2.1 AA compliance, assistive tech testing)
-- [ ] Data access equity (OWD, sharing, FLS, reporting visibility across roles)
-- [ ] Bias detection (input data, algorithm logic, output fairness, mitigation)
+- [ ] Representational data quality review (required fields, names, addresses, channels)
+- [ ] Accessibility assessment (WCAG 2.2 AA target / 2.1 AA minimum, sa11y or Lighthouse CI, assistive tech testing)
+- [ ] Data access equity and non-discrimination (OWD, sharing, FLS, reporting visibility across roles)
+- [ ] Fairness in automation (assignment, routing, territory, validation rules)
+- [ ] Bias detection (input data, algorithm logic, proxies, output fairness, mitigation)
 - [ ] Inclusive design review (language support, device support, cognitive load, cultural sensitivity)
-- [ ] Transparency requirements (decision logging, user-facing explanations, audit trail)
+- [ ] Transparency and human oversight (decision logging, explanations, HITL thresholds, contestability)
+- [ ] User agency and consent (per-use-case consent, opt-outs)
+- [ ] Ethical AI governance (pre-deployment fairness gate, accountable roles) if AI is involved
+- [ ] Agentic fairness minimums (if agents are involved)
 - [ ] Flagged exclusionary patterns (single-persona design, no accessibility, opaque automation)
-- [ ] Fairness-biased trade-off (favor inclusive, transparent, equitable options)
+- [ ] Fairness-biased trade-off naming the Fairness vs. Autonomy tension

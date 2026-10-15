@@ -44,6 +44,8 @@ When searching documentation, use these topic signals to focus your queries:
 | rest api, connect api | REST API reference documentation |
 | bulk api, data loading | Bulk API reference documentation |
 | integration, middleware, etl | Integration pattern and architecture documentation |
+| well-architected, pillar, trade-off, design review | Salesforce Well-Architected pillar guides (architect.salesforce.com) |
+| agentic vs traditional, flow vs apex, record-triggered, async, event-driven, data integration, forms, data 360 provisioning, data 360 interoperability | The matching Architect Decision Guide (see below) |
 
 ### Restrictions by Mode
 
@@ -56,6 +58,23 @@ Filter results to official Salesforce documentation only:
 - developer.salesforce.com
 - help.salesforce.com
 - architect.salesforce.com
+
+### Architect Decision Guides
+
+When a decision falls within one of these guides, read it first and treat it as a primary source for options and criteria:
+
+| Decision Guide | URL |
+|----------------|-----|
+| Determining Agentic and Traditional Workflow Automation | https://architect.salesforce.com/docs/architect/decision-guides/guide/determining-agentic-vs-traditional-workflow-automation |
+| Record-Triggered Automation | https://architect.salesforce.com/docs/architect/decision-guides/guide/record-triggered |
+| Data 360 Provisioning | https://architect.salesforce.com/docs/architect/decision-guides/guide/data-360-provisioning |
+| Data 360 Interoperability | https://architect.salesforce.com/docs/architect/decision-guides/guide/data-360-interoperability |
+| Asynchronous Processing | https://architect.salesforce.com/docs/architect/decision-guides/guide/async-processing |
+| Building Forms | https://architect.salesforce.com/docs/architect/decision-guides/guide/build-forms |
+| Event-Driven Architecture | https://architect.salesforce.com/docs/architect/decision-guides/guide/event-driven |
+| Data Integration | https://architect.salesforce.com/docs/architect/decision-guides/guide/data-integration |
+
+Check https://architect.salesforce.com/decision-guides for guides added after this list was written.
 
 ### Rules
 
@@ -75,18 +94,19 @@ Filter results to official Salesforce documentation only:
 
 ## Scoring System
 
-When scoring options, use the 6-pillar framework:
+When scoring options, use the five pillars of the [Salesforce Well-Architected Framework](https://architect.salesforce.com/docs/architect/well-architected/guide/framework.html):
 
 | Pillar | Weight |
 |--------|--------|
-| Trust | 20% |
-| Reliability | 20% |
+| Trust | 25% |
+| Reliability | 25% |
 | Operational Excellence | 20% |
-| Resource Optimization | 15% |
-| Cost Optimization | 15% |
+| Resource and Cost Optimization | 20% |
 | Fairness | 10% |
 
 **Decision Score** = weighted sum of pillar scores (each 0-100)
+
+The framework assigns no numeric weights; these are this repo's convention, weighting Trust and Reliability highest because the framework treats them as "non-negotiable foundations." The legacy Trusted / Easy / Adaptable model and the former separate Resource Optimization and Cost Optimization pillars are retired — never score against them.
 
 ### Hard Constraints
 
@@ -104,15 +124,20 @@ When the user requests a modifier (e.g., "apply the trust lens"), read and apply
 - "trust lens" / "security lens" → `knowledge/modifiers/trust-lens.md`
 - "reliability lens" → `knowledge/modifiers/reliability-lens.md`
 - "operational excellence lens" / "ops lens" → `knowledge/modifiers/operational-excellence-lens.md`
-- "resource optimization lens" / "resource lens" → `knowledge/modifiers/resource-optimization-lens.md`
-- "cost optimization lens" / "cost lens" → `knowledge/modifiers/cost-optimization-lens.md`
+- "resource and cost optimization lens" / "resource lens" / "cost lens" → `knowledge/modifiers/resource-and-cost-optimization-lens.md`
 - "fairness lens" → `knowledge/modifiers/fairness-lens.md`
+
+### Overlay Lenses
+
+- "agentic lens" / "agentforce lens" / "agent lens" → `knowledge/modifiers/agentic-enterprise-lens.md`
+
+The Agentic Enterprise lens is **auto-activated** whenever the topic involves Agentforce, autonomous agents, LLM-driven actions, MCP/A2A agent integrations, or agentic vs. traditional automation. Announce when it is active. It adds agentic risk factors to every pillar but does not change weights.
 
 ### Format Modifiers
 
 - "concise" → `knowledge/modifiers/concise.md`
 
-Modifiers are composable — multiple can be active simultaneously.
+Modifiers are composable — multiple can be active simultaneously. When more than one pillar lens is active, normalize weights per `knowledge/scoring/decision-score-methodology.md` (Lens Weight Adjustments).
 
 ## Quality Standards
 

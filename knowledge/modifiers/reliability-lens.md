@@ -6,19 +6,54 @@ This modifier applies a reliability-first perspective to all architecture decisi
 
 When the Reliability lens is active:
 
-- **Reliability pillar weight:** 35% (increased from 20%)
+- **Reliability pillar weight:** 35% (increased from 25%)
 - **Remaining pillars:** scaled proportionally to maintain 100% total
-  - Trust: 16.25% (down from 20%)
-  - Operational Excellence: 16.25% (down from 20%)
-  - Resource Optimization: 12.19% (down from 15%)
-  - Cost Optimization: 12.19% (down from 15%)
-  - Fairness: 8.12% (down from 10%)
+  - Trust: 21.67% (down from 25%)
+  - Operational Excellence: 17.33% (down from 20%)
+  - Resource and Cost Optimization: 17.33% (down from 20%)
+  - Fairness: 8.67% (down from 10%)
+
+## Framework Alignment
+
+This lens tracks the Reliability pillar of the Salesforce Well-Architected Framework. [Source: https://architect.salesforce.com/docs/architect/well-architected/guide/reliability.html]
+
+### Design Principles
+
+1. Distribute workload through bulkification.
+2. Assume everything fails.
+3. Build self-recovering systems.
+4. Design for business requirements first.
+5. Validate recovery through drills.
+
+### Reliability Areas
+
+| Area | What the lens examines |
+|------|------------------------|
+| Reliability Targets and SLOs | SLIs, SLOs, SLAs, availability tiers, user-journey reliability |
+| High Availability Architecture | Hyperforce, intra-region vs. paid cross-region DR, multi-org, layered redundancy (data, application, integration) |
+| Scalability and Capacity Planning | Governor limits against a 70% operational ceiling, bulkification, async options, data partitioning, capacity projection, load testing |
+| Fault Tolerance and Resilience | Graceful degradation tiers, circuit breakers, retry with backoff, fallbacks, timeouts, error handling |
+| Disaster Recovery and Business Continuity | RTO/RPO, backups (data, metadata, files), replication, DR drills |
+| Monitoring and Observability | Health model, Event Monitoring, Scale Center, Proactive Monitoring, transaction tracing, integration health, alerting |
+
+### Agentic Systems
+
+When the decision involves Agentforce or other agents, apply `knowledge/modifiers/agentic-enterprise-lens.md` as well. Agent failure modes (LLM service unavailability, response validation failures, hallucination, governor limit spikes, data skew in agent context) differ from Flow or Apex failures. They need a multi-tier fallback chain that ends in human handoff. [Source: https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-reliability.html]
 
 ## Analysis Requirements
 
+### Reliability Targets (Mandatory)
+
+Before rating any option, establish what "reliable enough" means for this decision:
+
+1. **SLIs:** Define the indicators to measure, such as availability, latency, success rate, and throughput.
+2. **SLOs:** Set targets per user journey, not one blanket target. Keep the solution SLO looser than the platform SLA (for example, 99.5% against 99.9%) so there is an error budget.
+3. **Availability tier:** Choose a tier between 99% and 99.99% based on business impact. Treat "five nines for everything" as an anti-pattern.
+4. **Degradation tier:** Classify each capability as Critical, Important, Supporting, or Optional. This decides which capabilities may degrade first.
+
 ### Governor Limit Resilience Analysis (Mandatory)
 
-For every architecture decision, perform a governor limit risk assessment across all critical limits:
+For every architecture decision, perform a governor limit risk assessment across all critical limits. Use the Well-Architected **70% operational ceiling**: steady-state consumption above 70% of any limit is a reliability risk, because spikes have no headroom.
 
 1. **SOQL Queries (100 per transaction)**
    - Count SOQL statements per code path
@@ -58,7 +93,7 @@ For every automation requirement, evaluate the appropriate async pattern:
 |----------|--------|------------------|---------|-----|
 | Field update after record save | <200 records | Immediate | Record-Triggered Flow (after-save) | Synchronous, no limits for simple updates |
 | Complex calculation after save | <200 records | <5 min | Queueable Apex | Async, chainable, preserves state |
-| Bulk data processing | 200-50M records | Hours acceptable | Batch Apex | Processes in chunks, restart on failure |
+| Bulk data processing | 200-50M records | Hours acceptable | Batch Apex | Processes in chunks; a failed chunk rolls back without undoing others |
 | Real-time external callout | Single record | <10 sec | Future method or Queueable | Fire-and-forget async |
 | Event-driven integration | Any volume | Seconds to minutes | Platform Events | Pub/sub, decoupled, scalable |
 | Scheduled maintenance | Any volume | Specific time | Scheduled Apex | Runs on cron schedule |
@@ -73,21 +108,27 @@ For every decision involving DML or external dependencies:
    - **Apex:** Every DML wrapped in try/catch with `Database.SaveResult` checks
    - **Flow:** Fault connector on every DML/HTTP callout element
    - **LWC:** Error property bound to wire adapters, imperative Apex in try/catch
-   - **Integration:** Circuit breaker pattern for external API failures
+   - **Integration:** Circuit breaker for external API failures. The breaker has three states: Closed (normal), Open (fail fast, route to fallback), and Half-open (allow a test request before closing).
+   - **Error handling stance:** Choose deliberately per failure: fail fast, fail gracefully, fail informatively, or fail safely.
 
 2. **Retry Logic**
-   - **Idempotent operations:** Design for safe retries (check existence before insert)
-   - **Exponential backoff:** 1s, 2s, 4s, 8s delays between retries
+   - **Idempotent operations:** Design for safe retries (check existence before insert, upsert on external ID)
+   - **Exponential backoff:** 1s, 2s, 4s, 8s delays between retries, capped at 30-60 seconds
+   - **Retry only transient failures:** Never retry 4xx client errors except 429. Never retry a governor-limit error inside the same transaction.
    - **Max retry count:** Cap at 3 attempts to prevent infinite loops
    - **Dead letter queue:** Log failed records for manual review
 
-3. **Partial Success Handling**
+3. **Fallbacks**
+   - Alternative data source, default behavior, manual process, or queue for retry
+   - Every Critical and Important capability needs a named fallback
+
+4. **Partial Success Handling**
    - **Batch Apex:** Use `Database.Stateful` to track failures across batches
    - **Bulk DML:** Use `Database.insert(records, false)` for partial success
    - **Flow:** Create error records in a custom object for admin review
    - **Integration:** Queue failed messages for reprocessing
 
-4. **Rollback Strategy**
+5. **Rollback Strategy**
    - **Savepoint pattern:** `Savepoint sp = Database.setSavepoint(); ... Database.rollback(sp);`
    - **Compensating transactions:** If distributed (multi-system), log for manual rollback
    - **Validation gates:** Pre-flight checks before DML to fail fast
@@ -104,13 +145,28 @@ For every solution, project performance at 10x current volume:
 #### 10x Projection
 - Records: [10X]
 - Estimated time: [10Y] seconds
-- Governor limits: [10Z]% — **Flag if >80%**
+- Governor limits: [10Z]% — **Flag if >70% (operational ceiling)**
 
 #### Mitigation if Projection Fails
 - Async processing (Batch Apex, Queueable)
 - Chunking (process in groups of 200)
 - Indexing (selective queries, composite indexes)
 - Archiving (move old data to Big Objects)
+- Data partitioning (date-based, record type, or owner-based)
+
+#### Load Testing
+- Load test in a Full Copy sandbox. Partial Copy gives misleading confidence.
+- Use Scale Test where available, and get Salesforce approval before running performance tests, or they can be throttled or blocked.
+- Measure p95 and p99 latency, not averages.
+
+### High Availability Assessment
+
+For decisions with availability requirements beyond a single org:
+
+- **Platform baseline:** Hyperforce provides intra-region resilience. Cross-region DR is a paid option. Confirm what the customer has purchased before assuming it.
+- **Multi-org patterns:** Active-Passive (standby org takes over) or Active-Active (both serve traffic). Active-Active adds reconciliation and operational complexity.
+- **Layered redundancy:** Assess the data, application, and integration layers separately. One redundant layer does not protect the others.
+- **Replication options:** CDC, Platform Events, scheduled API replication, MuleSoft-orchestrated replication.
 
 ### Recovery Planning
 
@@ -129,10 +185,18 @@ For every production automation, define recovery parameters:
    - Manual: Step-by-step data restore from backup
    - Time estimate: [X] minutes to fully roll back
 
-4. **Monitoring and Alerting**
-   - Real-time: Platform Events on critical failures
+4. **Backups**
+   - Back up data, metadata, and files, and validate the restore. An untested backup is an untested assumption.
+
+5. **DR Drills**
+   - Tabletop exercises, then partial failover, then a full failover drill
+   - Record actual recovery time against the RTO
+
+6. **Monitoring and Alerting**
+   - Health model: Green (healthy), Yellow (degraded), Red (failing) per critical journey
+   - Real-time: Platform Events on critical failures; Event Monitoring, Scale Center, and Proactive Monitoring where licensed
    - Batch: Email alerts from Batch Apex `finish()` method
-   - Dashboard: Lightning dashboard with error counts by type
+   - Alert on trends and thresholds, not isolated errors. Every alert needs an assigned responder.
 
 ### Bulk Processing Safety
 
@@ -162,11 +226,12 @@ For every automation that processes multiple records:
 
 Every response must include a dedicated section covering:
 
-- Governor limit risk (which limits, % consumed, mitigation)
+- Reliability targets (SLIs, SLO per journey, error budget, degradation tier)
+- Governor limit risk (which limits, % consumed against the 70% ceiling, mitigation)
 - Async pattern selection (why this pattern over alternatives)
 - Fault tolerance (error handling, retries, partial success)
 - Scalability projection (current volume → 10x projection)
-- Recovery plan (RTO/RPO, rollback, monitoring)
+- Recovery plan (RTO/RPO, backups, DR drill, health model, monitoring)
 
 ### Risk Assessment Prioritization
 
@@ -206,6 +271,10 @@ The following patterns are automatically flagged as high-risk under the reliabil
 6. **No test coverage for bulk scenarios** — untested at realistic volume
 7. **No rollback plan** — cannot recover from partial failure
 8. **Polling integrations** — API budget exhaustion, not scalable
+9. **Blanket availability targets** — "five nines for everything", or an SLO identical to the SLA (no error budget)
+10. **Retrying non-transient errors** — retrying 4xx (other than 429) or governor-limit errors
+11. **Untested backups or recovery** — no restore validation and no DR drill
+12. **Load tested only in Partial Copy or Developer sandboxes** — misleading confidence at production volume
 
 ### Favor Reliability-Optimized Options
 
@@ -217,6 +286,8 @@ When multiple options exist, prefer:
 - Database methods with `allOrNone=false` over standard DML (for partial success)
 - Composite API over multiple REST calls (for transactional consistency)
 - Change Data Capture over SOQL polling (for data sync)
+- Designs with a named fallback per Critical capability over designs that fail completely
+- Stateless designs over designs that keep server-side state
 
 ## Example Output (Reliability Lens Applied)
 
@@ -232,13 +303,13 @@ When multiple options exist, prefer:
 > **Reliability Considerations:**
 >
 > **Governor Limit Risk:**
-> - Flow transaction limit: 2,000 records (you have 500 = OK)
-> - **BUT:** If account count grows to 3,000, Flow will fail silently
+> - Scheduled Flow: 500 records is within limits today (illustrative; verify current Flow limits in documentation before citing)
+> - **BUT:** Steady-state consumption must stay under the 70% operational ceiling as volume grows
 > - Batch Apex limit: 50 million records (future-proof)
 >
 > **Async Pattern Selection:**
-> - Scheduled Flow: No chunking, no restart on partial failure
-> - Batch Apex: Processes 200 records per chunk, restarts from last successful chunk if failure
+> - Scheduled Flow: Less control over partial failure handling and failure reporting
+> - Batch Apex: Processes 200 records per chunk; a failed chunk rolls back without undoing completed chunks
 >
 > **Fault Tolerance:**
 > - Flow: Single fault connector, all-or-nothing (if 1 fails, all 500 roll back)
@@ -246,12 +317,13 @@ When multiple options exist, prefer:
 >
 > **Scalability Projection:**
 > - Current: 500 accounts
-> - 10x projection: 5,000 accounts → exceeds Flow limit (2,000 max)
+> - 10x projection: 5,000 accounts → re-check Flow limit consumption against the 70% ceiling
 > - Batch Apex handles 5,000 with no code changes
 >
 > **Recovery Plan:**
-> - RTO: 1 hour (batch retries automatically)
-> - RPO: 0 (stateful batch tracks processed records)
+> - RTO: 1 hour (illustrative target; rerun the job for records that failed)
+> - RPO: 0 (stateful batch tracks processed and failed records)
+> - DR drill: tabletop the "job failed overnight" scenario before go-live
 > - Rollback: Query `AsyncApexJob` for batch ID, inspect `NumberOfErrors`
 > - Monitoring: Email from `finish()` method if errors > 0
 >
@@ -293,11 +365,14 @@ When multiple options exist, prefer:
 
 When Reliability lens is active, verify every response includes:
 
-- [ ] Governor limit analysis (which limits, % consumed at current/10x volume)
+- [ ] Reliability targets (SLIs, SLO per journey looser than platform SLA, degradation tier)
+- [ ] Governor limit analysis (which limits, % consumed at current/10x volume, against the 70% ceiling)
 - [ ] Async pattern decision (why this pattern, not alternatives)
 - [ ] Fault tolerance plan (try/catch, fault connectors, partial success)
 - [ ] Scalability projection (current → 10x, mitigation if fails)
-- [ ] Recovery plan (RTO/RPO, rollback procedure, monitoring)
+- [ ] Recovery plan (RTO/RPO, rollback procedure, validated backups, DR drill type)
+- [ ] Health model (Green/Yellow/Red) and alerting with assigned responders
+- [ ] Load test plan (Full Copy sandbox, p95/p99 latency)
 - [ ] Bulk processing safety (queries/DML outside loops, 251-record test)
 - [ ] Error handling code (not just "handle errors" — actual try/catch block)
 - [ ] Flagged high-risk patterns (SOQL in loop, no fault connector, etc.)

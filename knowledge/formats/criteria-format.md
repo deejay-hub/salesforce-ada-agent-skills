@@ -19,8 +19,8 @@ Present criteria as a markdown table using pipe syntax.
 - Generate 6-10 criteria
 - Criterion name: 2-5 words maximum
 - Description: ONE sentence maximum
-- Source: where the criterion comes from (e.g., "Governor Limits", "Platform Constraint", "Well-Architected: Security", "Business Requirement", "Team Constraint", "Licensing Model")
-- Pillar: assign each criterion to exactly ONE of the six scoring pillars: Trust, Reliability, Operational Excellence, Resource Optimization, Cost Optimization, Fairness
+- Source: where the criterion comes from (e.g., "Governor Limits", "Platform Constraint", "Well-Architected: Trust", "Decision Guide: Async Processing", "Business Requirement", "Team Constraint", "Licensing Model")
+- Pillar: assign each criterion to exactly ONE of the five Salesforce Well-Architected pillars: Trust, Reliability, Operational Excellence, Resource and Cost Optimization, Fairness
 - Include criteria from this list where relevant to the decision: scalability, governor limits, licensing cost, implementation complexity, maintainability, team skillset, time to deliver
 - Each criterion must be grounded in a specific capability, limit, or trade-off discovered during Step 2 research — not generic filler
 
@@ -28,12 +28,11 @@ Present criteria as a markdown table using pipe syntax.
 
 | Pillar | Typical criteria |
 |--------|-----------------|
-| Trust | Security, authentication, data residency, compliance, encryption |
-| Reliability | Scalability, governor limits, error handling, fault tolerance, retry mechanisms |
-| Operational Excellence | Maintainability, deployment independence, monitoring, implementation complexity |
-| Resource Optimization | Performance, latency, API consumption, compute efficiency |
-| Cost Optimization | Licensing cost, development effort, time to deliver, operational overhead |
-| Fairness | Data access equity, reporting/analytics accessibility, multi-persona coverage |
+| Trust | Security controls, identity and access, OAuth flow and integration identity, privacy, data residency, compliance, encryption, agent identity and action governance |
+| Reliability | SLOs, availability, scalability, governor limit headroom (70% ceiling), fault tolerance, retry and fallback, disaster recovery, agent fallback chains |
+| Operational Excellence | Observability, DevOps and deployment, maintainability, incident management, team capability, agent testing and tracing |
+| Resource and Cost Optimization | Performance, query selectivity, API and consumption usage, licensing cost, development effort, time to value, TCO, build vs. buy, Flex Credit consumption |
+| Fairness | Accessibility (WCAG 2.2 AA), data representation, fair automation and routing, transparency, human oversight, consent, data access equity |
 
 ## Confirmation Prompt
 

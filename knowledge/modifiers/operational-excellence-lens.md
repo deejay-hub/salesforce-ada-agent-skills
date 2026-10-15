@@ -8,11 +8,46 @@ When the Operational Excellence lens is active:
 
 - **Operational Excellence pillar weight:** 35% (increased from 20%)
 - **Remaining pillars:** scaled proportionally to maintain 100% total
-  - Trust: 16.25% (down from 20%)
-  - Reliability: 16.25% (down from 20%)
-  - Resource Optimization: 12.19% (down from 15%)
-  - Cost Optimization: 12.19% (down from 15%)
-  - Fairness: 8.12% (down from 10%)
+  - Trust: 20.31% (down from 25%)
+  - Reliability: 20.31% (down from 25%)
+  - Resource and Cost Optimization: 16.25% (down from 20%)
+  - Fairness: 8.13% (down from 10%)
+
+## Framework Alignment
+
+This lens tracks the Operational Excellence pillar of the Salesforce Well-Architected Framework. [Source: https://architect.salesforce.com/docs/architect/well-architected/guide/operational-excellence.html]
+
+### Guiding Principles
+
+1. Evolve with observability.
+2. Standardize operational procedures.
+3. Embrace a DevOps culture.
+4. Automate for efficiency.
+5. Learn from all operational events.
+
+### Operational Areas
+
+| Area | What the lens examines |
+|------|------------------------|
+| Observability and Monitoring | Logs, metrics, traces; SLIs, burn rate, error budgets; alert levels and content |
+| DevOps Practices | Source-driven development, code review, test pyramid, CI/CD, safe deployment, configuration management |
+| Automation and Efficiency | Declarative-first (Flow Builder), programmatic (trigger frameworks, Batch/Queueable/Scheduled Apex), Platform Events |
+| Incident Management | Detection speed, severity tiers, on-call and escalation, blameless postmortems |
+| Continuous Improvement | DORA metrics, operational reviews, Operational Readiness Reviews, learning culture |
+
+### Maturity Phases
+
+Rate the team's current phase per area, and do not recommend controls that are two phases ahead of where the team is:
+
+| Phase | Characteristics |
+|-------|-----------------|
+| Lean Optimized | Small team, minimal viable process, focus on the highest-risk gaps |
+| Scale Optimized | Repeatable pipelines, automated testing, shared monitoring |
+| Governance Optimized | Center of Excellence, formal change control, audited operations |
+
+### Agentic Systems
+
+When the decision involves Agentforce or other agents, apply `knowledge/modifiers/agentic-enterprise-lens.md` as well. Agents need the Agent Development Lifecycle, behavioral testing in Agentforce Testing Center, and observation of reasoning steps with Agentforce Session Tracing, in addition to the controls below. [Source: https://architect.salesforce.com/docs/architect/well-architected/guide/agentic-enterprise-operational-excellence.html]
 
 ## Analysis Requirements
 
@@ -23,10 +58,13 @@ For every architecture decision, assess deployment characteristics:
 1. **CI/CD Readiness**
    - All metadata in version control (Git)
    - Automated validation pipeline (GitHub Actions, Jenkins)
-   - Test automation coverage (Apex 85%+, Jest 80%+)
+   - Test automation coverage (Apex 85%+, Jest 80%+, illustrative targets; the platform minimum for Apex deploys is 75%)
+   - Test pyramid: many unit tests, fewer integration tests, few end-to-end tests, plus performance tests for high-volume paths
+   - Code review: two approvals, PRs of 200-400 lines, mechanical checks automated (Salesforce Code Analyzer). Review for correctness, maintainability, performance, security, and consistency.
    - Dependency ordering documented (deploy schema before code)
 
 2. **Rollback Capability**
+   - Core metadata deployments are all-or-nothing transactions. Blue-green and canary deployment apply to Heroku and MuleSoft CloudHub 2.0, not core metadata. For core, use feature flags (Custom Metadata or Custom Permissions) to release progressively.
    - Non-destructive: Deploy previous commit (< 5 minutes)
    - Destructive: Restore from backup + manual fixes (< 30 minutes)
    - Database changes: Can schema be reverted without data loss?
@@ -36,13 +74,17 @@ For every architecture decision, assess deployment characteristics:
    - Dev sandbox matches production schema (weekly refresh)
    - UAT sandbox has production data subset (monthly refresh)
    - Pre-prod full sandbox for final validation (quarterly refresh)
-   - Drift detection: Unmanaged metadata flagged in pre-deploy scan
+   - Drift detection: Unmanaged metadata flagged in pre-deploy scan; full configuration drift check at least quarterly
+   - Infrastructure as code: Scratch org definitions, sandbox definitions, package definitions, and seed data in source control
 
-4. **Deployment Metrics**
-   - Lead time: Commit to production (target: < 1 day for hotfix, < 1 week for feature)
-   - Change failure rate: % of deploys requiring rollback (target: < 5%)
-   - MTTR (Mean Time to Recover): Incident detection to resolution (target: < 2 hours)
-   - Deployment frequency: How often can you safely deploy? (target: daily for non-breaking changes)
+4. **Deployment Metrics (DORA)**
+   - Throughput:
+     - Deployment frequency: How often can you safely deploy? (illustrative target: daily for non-breaking changes)
+     - Lead time for changes: Commit to production (illustrative target: < 1 day for hotfix, < 1 week for feature)
+   - Instability:
+     - Change failure rate: % of deploys causing a failure in production (illustrative target: < 5%)
+     - Failed deployment recovery time (FDRT): Time to recover from a failed deployment (illustrative target: < 2 hours)
+     - Deployment Rework Rate: Share of deployments that are unplanned fixes to earlier deployments
 
 ### Observability Requirements
 
@@ -63,13 +105,23 @@ For every automation, integration, or custom component:
 3. **Monitoring Dashboards**
    - **Real-time:** Lightning dashboard with error counts, API usage, batch job status
    - **Historical:** Event Monitoring queries for trends (failed logins, slow queries)
-   - **Alerting:** Email/Slack on threshold breach (>10 errors/hour, API usage >80%)
+   - **Alerting:** Email/Slack on threshold breach (illustrative: >10 errors/hour, API usage >70%)
 
-4. **Alerting Thresholds**
-   - **Critical:** Production down, data loss, security breach (page on-call immediately)
-   - **High:** Batch job failure, integration outage, >50 errors/hour (email within 15 min)
-   - **Medium:** Slow performance, API budget at 80%, sandbox refresh needed (daily digest)
-   - **Low:** Deprecation warnings, unused licenses, technical debt (weekly report)
+4. **SLIs and Error Budgets**
+   - Define SLIs for availability, latency, success rate, and throughput on critical user processes
+   - Instrument critical processes with milestone markers, and monitor integration health in both directions
+   - Track error budget burn rate against the SLO; alert on burn rate, not single errors
+   - Use percentiles (p95, p99) for latency, never averages
+
+5. **Alerting Levels and Content**
+   - **Critical alerts:** Production down, data loss, security breach (page on-call immediately)
+   - **Warning alerts:** Batch job failure, integration degradation, error budget burning fast (respond within business hours or per runbook)
+   - **Informational alerts:** Deprecation warnings, unused licenses, technical debt (weekly report)
+   - Every alert must answer: what is wrong, why it matters, and what to do. Alerts without an owner cause alert fatigue.
+
+6. **Platform Tools**
+   - Event Monitoring, Proactive Monitoring, Scale Center, Setup Audit Trail, Health Check
+   - Shield add-ons: Data Detect, Field Audit Trail
 
 ### Maintainability Assessment
 
@@ -141,6 +193,15 @@ For every decision, assess impact on release cadence:
    - **Low complexity:** Fast-tracks releases (hours to prod)
    - **Goal:** Favor low-complexity patterns when features are equivalent
 
+### Incident Management Readiness
+
+For every production change, confirm:
+
+1. **Severity tiers:** Severity 1, 2, and 3 are defined with response expectations
+2. **On-call and escalation:** Rotation, escalation paths (time, complexity, and severity triggers), and on-call access to tooling
+3. **Blameless postmortems:** Timeline, root cause, impact, prevention, and detection improvement. Prevention items must be specific ("add alert on X"), not vague ("improve monitoring").
+4. **Operational Readiness Review (ORR) before go-live:** Monitoring and alerting, documentation, deployment and rollback, performance and scalability, security and compliance, dependencies
+
 ### Technical Debt Scoring
 
 For every shortcut or workaround, quantify the debt:
@@ -167,8 +228,10 @@ For every shortcut or workaround, quantify the debt:
 
 Every response must include a dedicated section covering:
 
+- Maturity phase (Lean, Scale, or Governance Optimized) and whether the option fits it
 - Deployment complexity (CI/CD readiness, rollback, environment parity)
-- Observability (logging, monitoring, alerting)
+- Observability (SLIs, error budgets, logging, monitoring, alerting)
+- Incident readiness (severity tiers, escalation, ORR)
 - Maintainability (team skill fit, documentation, coupling)
 - Automation opportunities (what manual steps remain?)
 - Change velocity impact (does this slow or accelerate releases?)
@@ -212,6 +275,12 @@ The following patterns are automatically flagged as high-risk under the operatio
 6. **No version control** — cannot rollback, no audit trail
 7. **Hardcoded values** — requires code change for config, slows releases
 8. **No documentation** — onboarding slow, maintenance burden high
+9. **"One big trigger"** — multiple triggers or all logic in a trigger body instead of a trigger framework with handler classes
+10. **Process Builder or Workflow Rules for new automation** — Process Builder is past end of support (Dec 31, 2025); migrate to Flow
+11. **Assuming blue-green or canary for core metadata** — core deploys are all-or-nothing; use feature flags
+12. **Retrofitted observability** — monitoring planned after go-live instead of built into the first version
+13. **Single-reviewer approval or huge PRs** — review quality collapses
+14. **Silent batch failures** — Batch Apex with no failure reporting from `finish()`
 
 ### Favor Operationally-Optimized Options
 
@@ -221,6 +290,9 @@ When multiple options exist, prefer:
 - Declarative over code (Flow over Apex when features equivalent)
 - Managed packages over custom build (vendor handles maintenance)
 - Feature flags over branches (deploy off, enable in prod without redeploy)
+- Trigger frameworks over logic in trigger bodies
+- Idempotent Batch Apex over jobs that cannot be safely rerun
+- Versioned Platform Event schemas over ad hoc payload changes
 - Configuration as code over manual setup (all in Git)
 - Self-service over admin intervention (user-facing tools, Knowledge articles)
 
@@ -274,8 +346,11 @@ When multiple options exist, prefer:
 
 When Operational Excellence lens is active, verify every response includes:
 
-- [ ] Deployment complexity analysis (CI/CD readiness, rollback, parity)
-- [ ] Observability plan (logging standards, monitoring, alerting)
+- [ ] Maturity phase identified and recommendation sized to it
+- [ ] Deployment complexity analysis (CI/CD readiness, rollback via feature flags, parity, drift)
+- [ ] Observability plan (SLIs, error budget burn rate, alert levels and content)
+- [ ] Incident readiness (severity tiers, escalation, blameless postmortem, ORR)
+- [ ] DORA metrics impact (throughput and instability)
 - [ ] Maintainability assessment (team skill fit, documentation, coupling)
 - [ ] Automation opportunities (what manual steps can be eliminated?)
 - [ ] Change velocity impact (blocking vs. non-blocking, release frequency)

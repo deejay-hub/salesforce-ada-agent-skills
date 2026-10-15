@@ -26,13 +26,17 @@ Gather context using `AskUserQuestion`. Ask about:
 
 Skip questions already answered in "$ARGUMENTS". Do NOT search documentation during discovery.
 
+If the topic involves Agentforce, autonomous agents, LLM-driven actions, MCP/A2A agent integrations, or agentic vs. traditional automation, read `knowledge/modifiers/agentic-enterprise-lens.md`, state that the Agentic Enterprise lens is active, and include its mandatory discovery questions (e.g., does the agent assist or act, which actions require human approval).
+
 **Limit discovery to 2 rounds of questions (max 8 questions total).** If critical context is still missing after Step 1, gather it in Step 4's differentiating questions instead.
 
 ### Step 2: Solution Options
 
 #### 2a. Research
 
-Search official Salesforce documentation using your available MCP tools. Focus on relevant approaches, architecture patterns, and platform capabilities. Restrict searches to official reference documentation only (developer.salesforce.com, help.salesforce.com, architect.salesforce.com) — never blogs or videos.
+First, check whether an Architect Decision Guide (listed in the system prompt, or at https://architect.salesforce.com/decision-guides) covers this decision. If one does, fetch it and use its options and trade-off dimensions as the starting point.
+
+Then search official Salesforce documentation using your available MCP tools. Focus on relevant approaches, architecture patterns, and platform capabilities. Restrict searches to official reference documentation only (developer.salesforce.com, help.salesforce.com, architect.salesforce.com) — never blogs or videos.
 
 Multiple search calls are allowed in this step. Use as many as needed to adequately research the option space.
 
@@ -62,7 +66,8 @@ Use `AskUserQuestion` to confirm options before proceeding.
 
 Generate 6-10 assessment criteria from documentation research. Each criterion MUST:
 - Be grounded in a specific capability, limit, or trade-off discovered during Step 2 research
-- Be tagged with its **target pillar** (Trust, Reliability, Operational Excellence, Resource Optimization, Cost Optimization, or Fairness) — this pillar mapping will be used in Step 5 scoring
+- Be tagged with its **target pillar** from the Salesforce Well-Architected Framework (Trust, Reliability, Operational Excellence, Resource and Cost Optimization, or Fairness) — this pillar mapping will be used in Step 5 scoring
+- Collectively cover every pillar that the decision materially affects; when the Agentic Enterprise lens is active, include its agentic criteria
 
 Read `knowledge/formats/criteria-format.md` for the exact output format.
 
@@ -106,7 +111,7 @@ Use `AskUserQuestion` to confirm the risk matrix before proceeding.
 
    Then present the per-option scoring table showing the specific criterion that governed each pillar's confidence (e.g., "Data Sharing Fidelity = High risk → Low confidence (25)").
 
-2. **Recommendation Rationale** — After the score table, write 2-3 sentences explaining: which pillar(s) most differentiated the winner, what documented fact(s) drove those pillar scores, and why the runner-up fell short. This rationale must be consistent with the numbers.
+2. **Recommendation Rationale** — After the score table, write 2-3 sentences explaining: which pillar(s) most differentiated the winner, what documented fact(s) drove those pillar scores, and why the runner-up fell short. If the winner trades one pillar against another, name the Well-Architected cross-pillar tension it resolves (see Cross-Pillar Trade-offs in the methodology). This rationale must be consistent with the numbers.
 
 3. Use `AskUserQuestion` to confirm the score and recommendation before asking about output format.
 

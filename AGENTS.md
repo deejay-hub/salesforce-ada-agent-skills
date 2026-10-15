@@ -46,6 +46,8 @@ When searching documentation, use these topic signals to focus your queries:
 | rest api, connect api | REST API reference documentation |
 | bulk api, data loading | Bulk API reference documentation |
 | integration, middleware, etl | Integration pattern and architecture documentation |
+| well-architected, pillar, trade-off, design review | Salesforce Well-Architected pillar guides (architect.salesforce.com) |
+| agentic vs traditional, flow vs apex, record-triggered, async, event-driven, data integration, forms, data 360 provisioning, data 360 interoperability | The matching Architect Decision Guide (see below) |
 
 ### Restrictions by Mode
 
@@ -58,6 +60,23 @@ Filter results to official Salesforce documentation only:
 - developer.salesforce.com
 - help.salesforce.com
 - architect.salesforce.com
+
+### Architect Decision Guides
+
+When a decision falls within one of these guides, read it first and treat it as a primary source for options and criteria:
+
+| Decision Guide | URL |
+|----------------|-----|
+| Determining Agentic and Traditional Workflow Automation | https://architect.salesforce.com/docs/architect/decision-guides/guide/determining-agentic-vs-traditional-workflow-automation |
+| Record-Triggered Automation | https://architect.salesforce.com/docs/architect/decision-guides/guide/record-triggered |
+| Data 360 Provisioning | https://architect.salesforce.com/docs/architect/decision-guides/guide/data-360-provisioning |
+| Data 360 Interoperability | https://architect.salesforce.com/docs/architect/decision-guides/guide/data-360-interoperability |
+| Asynchronous Processing | https://architect.salesforce.com/docs/architect/decision-guides/guide/async-processing |
+| Building Forms | https://architect.salesforce.com/docs/architect/decision-guides/guide/build-forms |
+| Event-Driven Architecture | https://architect.salesforce.com/docs/architect/decision-guides/guide/event-driven |
+| Data Integration | https://architect.salesforce.com/docs/architect/decision-guides/guide/data-integration |
+
+Check https://architect.salesforce.com/decision-guides for guides added after this list was written.
 
 ### Rules
 
@@ -77,18 +96,19 @@ Filter results to official Salesforce documentation only:
 
 ## Scoring System
 
-When scoring options, use the 6-pillar framework:
+When scoring options, use the five pillars of the [Salesforce Well-Architected Framework](https://architect.salesforce.com/docs/architect/well-architected/guide/framework.html):
 
 | Pillar | Weight |
 |--------|--------|
-| Trust | 20% |
-| Reliability | 20% |
+| Trust | 25% |
+| Reliability | 25% |
 | Operational Excellence | 20% |
-| Resource Optimization | 15% |
-| Cost Optimization | 15% |
+| Resource and Cost Optimization | 20% |
 | Fairness | 10% |
 
 **Decision Score** = weighted sum of pillar scores (each 0-100)
+
+The framework assigns no numeric weights; these are this repo's convention, weighting Trust and Reliability highest because the framework treats them as "non-negotiable foundations." The legacy Trusted / Easy / Adaptable model and the former separate Resource Optimization and Cost Optimization pillars are retired — never score against them.
 
 ### Hard Constraints
 
@@ -106,15 +126,20 @@ When the user requests a modifier (e.g., "apply the trust lens"), read and apply
 - "trust lens" / "security lens" → `knowledge/modifiers/trust-lens.md`
 - "reliability lens" → `knowledge/modifiers/reliability-lens.md`
 - "operational excellence lens" / "ops lens" → `knowledge/modifiers/operational-excellence-lens.md`
-- "resource optimization lens" / "resource lens" → `knowledge/modifiers/resource-optimization-lens.md`
-- "cost optimization lens" / "cost lens" → `knowledge/modifiers/cost-optimization-lens.md`
+- "resource and cost optimization lens" / "resource lens" / "cost lens" → `knowledge/modifiers/resource-and-cost-optimization-lens.md`
 - "fairness lens" → `knowledge/modifiers/fairness-lens.md`
+
+### Overlay Lenses
+
+- "agentic lens" / "agentforce lens" / "agent lens" → `knowledge/modifiers/agentic-enterprise-lens.md`
+
+The Agentic Enterprise lens is **auto-activated** whenever the topic involves Agentforce, autonomous agents, LLM-driven actions, MCP/A2A agent integrations, or agentic vs. traditional automation. Announce when it is active. It adds agentic risk factors to every pillar but does not change weights.
 
 ### Format Modifiers
 
 - "concise" → `knowledge/modifiers/concise.md`
 
-Modifiers are composable — multiple can be active simultaneously.
+Modifiers are composable — multiple can be active simultaneously. When more than one pillar lens is active, normalize weights per `knowledge/scoring/decision-score-methodology.md` (Lens Weight Adjustments).
 
 ## Learn Mode
 
@@ -170,9 +195,11 @@ Gather context about:
 
 Do NOT search documentation during discovery.
 
+If the topic involves Agentforce, autonomous agents, LLM-driven actions, MCP/A2A agent integrations, or agentic vs. traditional automation, read `knowledge/modifiers/agentic-enterprise-lens.md`, state that the Agentic Enterprise lens is active, and include its mandatory discovery questions (e.g., does the agent assist or act, which actions require human approval).
+
 ### Step 2: Solution Options
 
-1. Search official Salesforce documentation using your available MCP tools. Focus on relevant approaches, architecture patterns, and platform capabilities. Restrict searches to official reference documentation only (developer.salesforce.com, help.salesforce.com, architect.salesforce.com) — never blogs or videos.
+1. Check whether an Architect Decision Guide covers this decision; if so, use it as the starting point. Then search official Salesforce documentation using your available MCP tools. Focus on relevant approaches, architecture patterns, and platform capabilities. Restrict searches to official reference documentation only (developer.salesforce.com, help.salesforce.com, architect.salesforce.com) — never blogs or videos.
 2. Propose 3-4 options
 
 Read `knowledge/formats/options-format.md` for the exact output format.
@@ -181,7 +208,7 @@ Ask the user to confirm options before proceeding.
 
 ### Step 3: Assessment Criteria
 
-Generate 6-10 assessment criteria from documentation research.
+Generate 6-10 assessment criteria from documentation research. Tag each with one of the five Well-Architected pillars: Trust, Reliability, Operational Excellence, Resource and Cost Optimization, or Fairness.
 
 Read `knowledge/formats/criteria-format.md` for the exact output format.
 
@@ -198,7 +225,7 @@ Ask the user to confirm the risk matrix before proceeding.
 
 ### Step 5: Decision Score
 
-1. Read `knowledge/scoring/decision-score-methodology.md`. Map each criterion to its most relevant pillar. If multiple criteria map to one pillar, use the worst rating. Score each pillar, then calculate the weighted decision score.
+1. Read `knowledge/scoring/decision-score-methodology.md`. Map each criterion to its most relevant pillar. If multiple criteria map to one pillar, use the worst rating. Score each pillar (Low risk = 85, Med = 55, High = 25), then calculate the weighted decision score. Explain which pillars differentiated the winner and name any cross-pillar tension it resolves.
 2. Ask the user which output format they prefer: Full (MADR), Minimal (MADR), or No output.
 3. If not "No output":
    - Read the corresponding format file from `knowledge/formats/`

@@ -20,9 +20,11 @@ Gather context by asking the user about:
 
 Skip questions already answered in the user's request. Do NOT search documentation during discovery.
 
+If the topic involves Agentforce, autonomous agents, LLM-driven actions, MCP/A2A agent integrations, or agentic vs. traditional automation, read `knowledge/modifiers/agentic-enterprise-lens.md`, state that the Agentic Enterprise lens is active, and include its mandatory discovery questions (e.g., does the agent assist or act, which actions require human approval).
+
 ### Step 2: Solution Options
 
-1. Search official Salesforce documentation using your available MCP tools. Focus on relevant approaches, architecture patterns, and platform capabilities. Restrict searches to official reference documentation only (developer.salesforce.com, help.salesforce.com, architect.salesforce.com) — never blogs or videos.
+1. Check whether an Architect Decision Guide (https://architect.salesforce.com/decision-guides) covers this decision; if so, use it as the starting point. Then search official Salesforce documentation using your available MCP tools. Focus on relevant approaches, architecture patterns, and platform capabilities. Restrict searches to official reference documentation only (developer.salesforce.com, help.salesforce.com, architect.salesforce.com) — never blogs or videos.
 2. Propose 3-4 options
 
 Read `knowledge/formats/options-format.md` for the exact output format. Follow it precisely.
@@ -31,7 +33,7 @@ Ask the user to confirm options before proceeding.
 
 ### Step 3: Assessment Criteria
 
-Generate 6-10 assessment criteria from documentation research.
+Generate 6-10 assessment criteria from documentation research. Tag each with one of the five Well-Architected pillars: Trust, Reliability, Operational Excellence, Resource and Cost Optimization, or Fairness.
 
 Read `knowledge/formats/criteria-format.md` for the exact output format.
 
@@ -48,7 +50,7 @@ Ask the user to confirm the risk matrix before proceeding.
 
 ### Step 5: Decision Score
 
-1. Read `knowledge/scoring/decision-score-methodology.md` now. Map each criterion from the risk matrix to its most relevant pillar. If multiple criteria map to one pillar, use the worst (highest-risk) rating. Score each pillar using the risk-to-score bands, then calculate the weighted decision score.
+1. Read `knowledge/scoring/decision-score-methodology.md` now. Map each criterion from the risk matrix to its most relevant pillar. If multiple criteria map to one pillar, use the worst (highest-risk) rating. Score each pillar using the fixed confidence values (Low risk = 85, Med = 55, High = 25), then calculate the weighted decision score. Explain which pillars differentiated the winner and name any cross-pillar tension it resolves.
 2. Ask the user which output format they prefer:
    - "Full (MADR)" — Comprehensive record with pros/cons, consequences, confirmation steps, and implementation notes
    - "Minimal (MADR)" — Concise record with context, outcome, risk matrix, and sources only

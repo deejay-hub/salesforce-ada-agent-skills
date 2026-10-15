@@ -85,9 +85,21 @@ Type `/decide` followed by your question and the agent runs a 5-step pipeline, p
 2. **Solution Options** — proposes 3-4 options backed by official documentation
 3. **Assessment Criteria** — generates criteria that define what "better" means for this decision
 4. **Risk Assessment** — differentiating questions, then rates each option against each criterion (Low/Med/High) with cited rationale
-5. **Decision Score** — weighted sum across Well-Architected pillars, outputs a decision record to disk
+5. **Decision Score** — weighted sum across the five [Salesforce Well-Architected](https://architect.salesforce.com/docs/architect/well-architected/guide/framework.html) pillars (Trust, Reliability, Operational Excellence, Resource and Cost Optimization, Fairness), outputs a decision record to disk
 
 At every gate you can add, remove, or modify options and criteria. The pipeline prevents a flawed assumption from propagating unchallenged to the recommendation.
+
+When a decision is covered by one of the [Architect Decision Guides](https://architect.salesforce.com/decision-guides) (e.g., agentic vs. traditional automation, record-triggered automation, async processing, event-driven architecture, data integration, Data 360 provisioning and interoperability), the pipeline uses that guide as its starting point.
+
+#### Lenses
+
+Append a lens to shift the analysis, e.g. `/decide ... apply the trust lens`:
+
+| Lens | Effect |
+|------|--------|
+| Trust, Reliability, Operational Excellence, Resource and Cost Optimization, Fairness | Raises that pillar to 35% weight and adds pillar-specific analysis |
+| Agentic Enterprise | Overlay that adds agentic risk factors to every pillar (agent identity, HITL, fallback chains, ADLC, consumption pricing). Auto-activates for Agentforce and agent decisions |
+| Concise | Terse, high-density output |
 
 Example prompts:
 
@@ -95,6 +107,7 @@ Example prompts:
 /decide single org vs multi-org for a global enterprise with regional autonomy needs
 /decide CDC vs Platform Events vs Apex REST for integrating with an Oracle ERP
 /decide Flow vs Apex trigger for high-volume lead assignment
+/decide Agentforce agent vs Flow orchestration for case triage
 ```
 
 ### The Learn Pipeline (`/learn`)
@@ -141,7 +154,7 @@ salesforce-ada-agent-skills/
 │   │   ├── risk-matrix-format.md
 │   │   └── decision-format-*.md
 │   ├── scoring/                 # Decision score methodology
-│   └── modifiers/               # Pillar lenses (trust, reliability, ops, resource, cost, fairness) + concise format modifier
+│   └── modifiers/               # Pillar lenses (trust, reliability, ops, resource-and-cost, fairness), agentic enterprise overlay lens, concise format modifier
 └── output/
     └── decisions/               # Generated decision records
 ```
